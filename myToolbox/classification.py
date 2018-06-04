@@ -1,3 +1,5 @@
+from matplotlib import pyplot as plt
+
 def plot_roc(target, score, cutoff_target=None, ax=None, pos_label=None, 
              set_tick_labels=True, estimate_random=True, **kwargs):
     ax = _activate_axis_(ax)
