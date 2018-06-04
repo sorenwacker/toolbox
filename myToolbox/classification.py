@@ -10,7 +10,6 @@ def plot_roc(target, score, cutoff_target=None, ax=None, pos_label=None,
     _plot_roc_defaults_(set_tick_labels=set_tick_labels, ax=ax)
     return ax
 
-
 def _plot_roc_defaults_(set_tick_labels=True, ax=None):
     ax = _activate_axis_(ax)
     if set_tick_labels is False:
@@ -26,13 +25,11 @@ def _plot_roc_defaults_(set_tick_labels=True, ax=None):
     plot_diagonal(linestyle='--', color='w')     
     return ax
 
-
 def plot_random_roc(labels, N, ax=None):
     ax = _activate_axis_(ax)
     for i in range(N):
         plt.plot(*_random_roc_(labels), alpha=0.01, linewidth=10, color='k', zorder=0)
     return ax
-
 
 def _random_roc_(y_train, ax=None):
     '''
@@ -41,3 +38,14 @@ def _random_roc_(y_train, ax=None):
     rand_prob = norm.rvs(size=len(y_train))
     fpr, tpr, _ = roc_curve(y_train, rand_prob, pos_label=1)
     return fpr, tpr
+
+def _activate_axis_(ax=None):
+    if ax is not None:
+        plt.sca(ax)
+    return plt.gca()
+
+def _axis_dimensions_(ax=None):
+    ax = _activate_axis_(ax)
+    x0, x1 = ax.get_xlim()
+    y0, y1 = ax.get_ylim()
+    return (x0, x1, y0, y1) 
