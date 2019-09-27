@@ -34,7 +34,7 @@ def package_tree(pkgroot):
 REQUIRES = []
 
 config = {
-    'description': 'My useful Pyhton tools.',
+    'description': 'My useful Python tools.',
     'author': 'Soren Wacker',
     'url': 'github.org',
     'download_url': 'github.org',
