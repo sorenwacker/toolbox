@@ -41,7 +41,7 @@ config = {
     'author_email': 'swacker@ucalgary.ca',
     'install_requires': REQUIRES,
     'packages': package_tree('mytoolbox'),
-    'package_data': {'': '*.md'},
+    'package_data': {},
     'name': 'mytoolbox',
     'license': '',
     'version': _version}
