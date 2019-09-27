@@ -14,8 +14,8 @@ ROOT = dirname(realpath(__file__))
 # Versioneer
 # -----------------------------------------------------------------------------
 
-versioneer.versionfile_source = 'myToolbox/_version.py'
-versioneer.versionfile_build = 'myToolbox/_version.py'
+versioneer.versionfile_source = 'mytoolbox/_version.py'
+versioneer.versionfile_build = 'mytoolbox/_version.py'
 versioneer.tag_prefix = '0.1'  # tags are like 1.1.0
 versioneer.parentdir_prefix = 'myToolbox-'  # dirname like 'myproject-1.1.0'
 _version = versioneer.get_version()
@@ -40,9 +40,9 @@ config = {
     'download_url': 'github.org',
     'author_email': 'swacker@ucalgary.ca',
     'install_requires': REQUIRES,
-    'packages': package_tree('myToolbox'),
+    'packages': package_tree('mytoolbox'),
     'package_data': {'': '*.md'},
-    'name': 'myToolbox',
+    'name': 'mytoolbox',
     'license': '',
     'version': _version}
 
