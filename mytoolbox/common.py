@@ -9,6 +9,8 @@ from glob import glob
 from pathlib import Path as P
 from tqdm import tqdm_notebook as tqdm
 
+import seaborn as sns
+
 # STOP
 from .jupyter import *
 from .general import *
