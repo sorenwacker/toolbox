@@ -7,7 +7,7 @@ from os.path import isdir, isfile, basename
 from os.path import basename, dirname
 from glob import glob
 from pathlib import Path as P
-from tqdm import tqdm_notebook as tqdm
+from tqdm.notebook import tqdm
 
 import seaborn as sns
 
