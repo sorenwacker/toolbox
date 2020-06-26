@@ -2,6 +2,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import roc_curve
 from scipy.stats import norm
+from matplotlib import pyplot as plt
+from scipy.cluster.hierarchy import linkage, dendrogram
+from scipy.spatial.distance import pdist, squareform
+
 
 def plot_roc(target, score, cutoff_target=None, ax=None, pos_label=None, 
              set_tick_labels=True, estimate_random=True, **kwargs):
@@ -135,3 +139,47 @@ def legend_outside(ax=None, bbox_to_anchor=None, **kwargs):
     if bbox_to_anchor is None:
         bbox_to_anchor=(1, 1.05)
     ax.legend(bbox_to_anchor=bbox_to_anchor, **kwargs)
+    
+
+
+def hierachical_clustering(df, plot=True, vmin=None, vmax=None,
+                           metric='euclidean'):
+    '''based on heatmap function from
+    http://nbviewer.ipython.org/github/herrfz/dataanalysis/
+    blob/master/week3/svd_pca.ipynb
+    Generates a heatmap from the input matrix.
+    '''
+    
+    no_plot = not plot
+    
+
+    D1 = squareform(pdist(df, metric=metric))
+    D2 = squareform(pdist(df.T, metric=metric))
+    
+    if plot:
+        f = plt.figure(figsize=(8, 8), dpi=600)
+        # add first dendrogram
+        ax1 = f.add_axes([0.61, 0.1, 0.2, 0.6])
+    Y = linkage(D1, method='complete')
+    Z1 = dendrogram(Y, orientation='right', no_plot=no_plot)
+    
+    if plot:
+        ax1.set_xticks([])
+        ax1.set_yticks([])
+        # add second dendrogram
+        ax2 = f.add_axes([0.0, 0.71, 0.6, 0.2])
+        
+    Y = linkage(D2, method='complete')
+    Z2 = dendrogram(Y, no_plot=no_plot)
+    if plot:
+        ax2.set_xticks([])
+        ax2.set_yticks([])
+        # add matrix plot
+        axmatrix = f.add_axes([0.0, 0.1, 0.6, 0.6])
+        
+    idx1 = Z1['leaves']
+    idx2 = Z2['leaves']
+    D = df.iloc[idx1, idx2]
+    if plot:
+        sns.heatmap(D[::-1], cbar=False)
+    return {'ordered': D, 'rorder': Z1['leaves'], 'corder': Z2['leaves']}
