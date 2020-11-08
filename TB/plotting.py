@@ -3,36 +3,45 @@ import seaborn as sns
 import matplotlib as mpl    
 
 from matplotlib import pyplot as plt
-from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_curve, roc_auc_score
 from scipy.stats import norm
 from matplotlib import pyplot as plt
 
-from scipy.cluster.hierarchy import linkage, dendrogram
+from scipy.cluster.hierarchy import linkage, dendrogram, set_link_color_palette
 from scipy.spatial.distance import pdist, squareform
-
+from scipy.cluster import hierarchy
 
 def plot_roc(target, score, cutoff_target=None, ax=None, pos_label=None, 
-             set_tick_labels=True, estimate_random=True, **kwargs):
+             set_tick_labels=True, estimate_random=True, with_auc=True, **kwargs):
     ax = _activate_axis_(ax)
     if cutoff_target is not None:
         target = classify(target, cutoff_target)
     fpr, tpr, _ = roc_curve(target, score, pos_label=pos_label)
+    auc = roc_auc_score(target, score)
     plt.plot(fpr, tpr, **kwargs)
+    plt.text(0.75, 0.02,f'AUC={auc:4.2f}', size=8)
     if estimate_random:
         plot_random_roc(target, 200, ax=ax)
     _plot_roc_defaults_(set_tick_labels=set_tick_labels, ax=ax)
     return ax
 
-def _plot_roc_defaults_(set_tick_labels=True, ax=None):
+def _plot_roc_defaults_(set_tick_labels=True, ax=None, roc_percent=True):
     ax = _activate_axis_(ax)
     if set_tick_labels is False:
         plt.gca().set_yticklabels([])
         plt.gca().set_xticklabels([])
     else:
-        plt.xticks([0.2, 0.4, 0.6, 0.8])
-        plt.yticks([0.2, 0.4, 0.6, 0.8]) 
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')        
+        if roc_percent:
+            plt.xticks([0.2, 0.4, 0.6, 0.8], [20, 40, 60, 80])
+            plt.yticks([0.2, 0.4, 0.6, 0.8], [20, 40, 60, 80]) 
+            plt.xlabel('False Positive [%]')
+            plt.ylabel('True Positive [%]')             
+        else:
+            plt.xticks([0.2, 0.4, 0.6, 0.8])
+            plt.yticks([0.2, 0.4, 0.6, 0.8]) 
+            plt.xlabel('False Positive Rate')
+            plt.ylabel('True Positive Rate')        
+            
     plt.xlim((0,1))
     plt.ylim((0,1))
     plot_diagonal(linestyle='--', color='w')     
@@ -137,7 +146,7 @@ def legend_outside(ax=None, bbox_to_anchor=None, **kwargs):
         default: pyplot.gca() is called
     bbox_to_anchor : 2D tuple with numeric values
         default: (1, 1.05)
-    """
+    """ 
     if ax is None:
         ax = plt.gca()
     if bbox_to_anchor is None:
@@ -145,10 +154,8 @@ def legend_outside(ax=None, bbox_to_anchor=None, **kwargs):
     ax.legend(bbox_to_anchor=bbox_to_anchor, **kwargs)
     
 
-
-
-def hierarchical_clustering(df, vmin=None, vmax=None, figsize=(8,8), 
-                            xmaxticks=None, ymaxticks=None, metric='euclidean'):
+def hierarchical_clustering(df, vmin=None, vmax=None, figsize=(8,8), top_height=2, left_width=2,
+                            xmaxticks=None, ymaxticks=None, metric='euclidean', cmap=None):
     '''based on heatmap function from
     http://nbviewer.ipython.org/github/herrfz/dataanalysis/
     blob/master/week3/svd_pca.ipynb
@@ -157,43 +164,59 @@ def hierarchical_clustering(df, vmin=None, vmax=None, figsize=(8,8),
 
     df = df.copy()
 
-    cm = plt.cm
-    cmap = cm.rainbow(np.linspace(0, 0, 1))
-    hierarchy.set_link_color_palette([mpl.colors.rgb2hex(rgb[:3]) for rgb in cmap])
+    # cm = plt.cm
+    # cmap = cm.rainbow(np.linspace(0, 0, 1))
+    # hierarchy.set_link_color_palette([mpl.colors.rgb2hex(rgb[:3]) for rgb in cmap])
+    
+    # Subplot sizes
+    total_width, total_height = figsize 
+    
+    main_h = 1-(top_height/total_height)
+    main_w = 1-(left_width/total_width)
+    
+    gap_x = (0.1/total_width)
+    gap_y = (0.1/total_height) 
+    
+    left_h = main_h
+    left_w = 1-main_w
+
+    top_h = 1-main_h
+    top_w = main_w
     
     ydim, xdim = df.shape
 
     if xmaxticks is None:
-        xmaxticks = min(20, xdim)
+        xmaxticks = int( 5*main_w*total_width )
     if ymaxticks is None:
-        ymaxticks = min(20, ydim)
-
+        ymaxticks = int( 5*main_h*total_height )
+    
     dm = df.fillna(0).values
     D1 = squareform(pdist(dm, metric=metric))
     D2 = squareform(pdist(dm.T, metric=metric))
     fig = plt.figure(figsize=figsize)
     fig.set_tight_layout(False)
-    # add first dendrogram
 
-    ax1 = fig.add_axes([0.09, 0.1, 0.2, 0.6], frameon=False)
+    # add left dendrogram
+    ax1 = fig.add_axes([0, 0, left_w-gap_x, left_h], frameon=False)
     Y = linkage(D1, method='complete')
     Z1 = dendrogram(Y, orientation='left', color_threshold=0, above_threshold_color='k')
     ax1.set_xticks([])
     ax1.set_yticks([])
-    # add second dendrogram
-    ax2 = fig.add_axes([0.3, 0.71, 0.6, 0.2], frameon=False)
+    # add top dendrogram
+    ax2 = fig.add_axes([left_w, main_h+gap_y, top_w, top_h-gap_y], frameon=False)
     Y = linkage(D2, method='complete')
     Z2 = dendrogram(Y, color_threshold=0, above_threshold_color='k')
     ax2.set_xticks([])
     ax2.set_yticks([])
     # add matrix plot
-    axmatrix = fig.add_axes([0.3, 0.1, 0.6, 0.6])
+    axmatrix = fig.add_axes([left_w, 0, main_w, main_h])
     idx1 = Z1['leaves']
     idx2 = Z2['leaves']
     D = dm[idx1, :]
     D = D[:, idx2]
 
-    fig = axmatrix.matshow(D[::-1], aspect='auto', cmap='hot',
+    if cmap is None: cmap='hot'
+    fig = axmatrix.matshow(D[::-1], aspect='auto', cmap=cmap,
                            vmin=vmin, vmax=vmax)
 
     axmatrix.set_xticks([])

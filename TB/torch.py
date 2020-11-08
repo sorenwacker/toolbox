@@ -10,7 +10,26 @@ from tqdm.notebook import tqdm
 from matplotlib.pyplot import scatter, title, show
 
 class AutoEncoder(nn.Module):
-    def __init__(self, input_dim, latent_dim=2, layers=[64, 32], add_sigmoid=False, dropout=0):
+    def __init__(self, input_dim, latent_dim=2, layers=[64, 32], 
+                 add_sigmoid=False, dropout=0, device=None):
+        """
+        PyTorch based autoencoder providing a scikit-learn api.
+        -----
+        Args:
+            - input_dim: int, number of input and output features
+                for the neural network.
+            - latent_dim: int, dimension of the latent or encoded 
+                space.
+            - layers: Array(int), defines the architecture of the 
+                hidden layers.
+            - add_sigmoid: bool, whether or not to add a sigmoida
+                transformation
+                at the middle layer
+            - dropout: float, (0-1), dropout factor before each
+                in the encoder
+            - device: CUDA device to use
+        """
+        
         super(AutoEncoder,self).__init__()
         
         layout = [input_dim] + layers + [latent_dim]
@@ -39,6 +58,8 @@ class AutoEncoder(nn.Module):
         self.encoder = nn.Sequential(*encoder)
         self.decoder = nn.Sequential(*decoder)
         self.snapshots = []
+        self.device = device
+        self.to(device)
 
         for i in encoder:
             print(i)
@@ -52,13 +73,16 @@ class AutoEncoder(nn.Module):
 
     def fit(self, X_train, epochs, batch_size=8, 
             num_workers=4, shuffle=True, labels=None,
-            lr=1e-4):
+            lr=1e-4, show_every=10):
+        """
+        Fitting function to train the neural network.
+        """
         
         if isinstance(X_train, pd.DataFrame):
             ndx = X_train.index
             X_train = X_train.values
-            
-        X_train = torch.tensor(X_train).float()
+        
+            X_train = torch.tensor(X_train).float()
 
         dataloader = DataLoader(X_train, 
                                 batch_size=batch_size, 
@@ -68,9 +92,11 @@ class AutoEncoder(nn.Module):
         optimizer = optim.Adam(self.parameters(), lr=lr)
      
         criterion = nn.MSELoss()
+        
 
         for i in tqdm(range(1, epochs+1)):
             for data in dataloader:
+                data = data.to(self.device)
                 optimizer.zero_grad()
                 # compute reconstructions
                 outputs = self(data)
@@ -83,8 +109,12 @@ class AutoEncoder(nn.Module):
                 # compute the epoch training loss
                 assert  train_loss is not np.NaN
             
-            if (i) % 10 == 0:    
-                result = pd.DataFrame( self.encoder(X_train).detach().numpy(), index=ndx ).add_prefix('AE_')
+            
+            if (show_ever is not None) and ((i) % show_every == 0):    
+                result = pd.DataFrame( 
+                    self.encoder(X_train.to(self.device))\
+                        .detach().cpu().numpy(), index=ndx )\
+                        .add_prefix('AE_')
                 result['Epoch'] = i
                 self.snapshots.append( result )
                 scatter(result['AE_0'], result['AE_1'], c=labels)
@@ -97,9 +127,9 @@ class AutoEncoder(nn.Module):
             X = X.values
         else:
             ndx = None
-        X = torch.tensor(X).float()
+        X = torch.tensor(X).float().to(self.device)
         enc = self.encoder(X)
-        enc = pd.DataFrame( enc ).add_prefix('AE_')
+        enc = pd.DataFrame( enc ).add_prefix('AE_').astype(float)
         if ndx is not None:
             enc.index = ndx
         return enc 
