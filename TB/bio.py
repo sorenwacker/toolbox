@@ -4,9 +4,12 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Align.Applications import MuscleCommandline
 from Bio import AlignIO
+
 import tempfile
 from uuid import uuid1 as uuid
 import os
+import pandas as pd
+import numpy as np
 
 
 def multiple_sequence_alignment(records, output_fn='/var/www/html/dl/alignment.fasta',
