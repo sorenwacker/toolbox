@@ -20,7 +20,7 @@ pd.options.display.max_colwidth = 100
 pd.options.display.max_columns = 100
 
 
-def date():
+def today():
     return date.today().strftime('%y%m%d')
 
 # STOP

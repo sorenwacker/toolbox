@@ -5,12 +5,14 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Align.Applications import MuscleCommandline
 from Bio import AlignIO
 
+from Bio import SeqIO
+from Bio.Alphabet import generic_protein
+
 import tempfile
 from uuid import uuid1 as uuid
 import os
 import pandas as pd
 import numpy as np
-
 
 def multiple_sequence_alignment(records, output_fn='/var/www/html/dl/alignment.fasta',
                                 format='clustal', id_prefix='', index=None):
@@ -58,3 +60,29 @@ def multiple_sequence_alignment(records, output_fn='/var/www/html/dl/alignment.f
             index.append( line.split(' ')[0])
             
     return pd.DataFrame( np.array(result), index=index).sort_index()
+
+
+def fasta_to_df(fn):
+    fns = filename
+    if isinstance(fns, str):
+        fns = [fn]
+    sample = []
+    sequence = []
+    description = []
+    records = []
+    ids = []
+    for fn in fns:
+        for record in SeqIO.parse(fn, "fasta", alphabet=generic_protein):
+            label = basename(fn).split('.')[0].replace('-', '_')[:10]
+            descr = ' '.join( record.description.split()[1:] ) 
+            seq = str( record.seq )
+            if descr == 'hypothetical protein' or descr.startswith('putative') or descr=='':
+                continue
+            sample.append(label)
+            sequence.append(seq)
+            description.append(descr)
+            records.append(record)
+            seq = str(record.seq)
+            ids.append(record.id)
+    df = pd.DataFrame({'Label': sample, 'Description': description, 'Records': records, 'Sequence': sequence, 'ID': ids})
+    return df
