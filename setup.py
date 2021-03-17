@@ -31,7 +31,11 @@ def package_tree(pkgroot):
     return subdirs
 
 
-REQUIRES = ['tqdm', 'seaborn']
+REQUIRES = [
+    'tqdm', 
+    'seaborn',
+    'missingno'
+]
 
 config = {
     'description': 'My useful Python tools.',
