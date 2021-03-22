@@ -1,5 +1,6 @@
 import pandas as pd 
 import numpy as np 
+import seaborn as sns
 
 import torch
 from torch import nn
@@ -9,9 +10,10 @@ from torch.utils.data import DataLoader
 from tqdm.notebook import tqdm
 from matplotlib.pyplot import scatter, title, show
 
+
 class AutoEncoder(nn.Module):
     def __init__(self, input_dim, latent_dim=2, layers=[64, 32], 
-                 add_sigmoid=False, dropout=0, device=None):
+                 add_sigmoid=False, dropout=0, device=None, save_snapshots=False):
         """
         PyTorch based autoencoder providing a scikit-learn api.
         -----
@@ -32,6 +34,9 @@ class AutoEncoder(nn.Module):
         
         super(AutoEncoder,self).__init__()
         
+        self.save_snapshots = save_snapshots
+        self.snapshots = []
+
         layout = [input_dim] + layers + [latent_dim]
         layout = [(i,j) for i, j in zip(layout[:-1], layout[1:])]
 
@@ -71,20 +76,20 @@ class AutoEncoder(nn.Module):
         x = self.decoder(x)
         return x
 
-    def fit(self, X_train, epochs, batch_size=8, 
-            num_workers=4, shuffle=True, labels=None,
+    def fit(self, X_train, epochs, batch_size=8, labels=None,
+            num_workers=4, shuffle=True, hue=None,
             lr=1e-4, show_every=10):
         """
         Fitting function to train the neural network.
         """
         
+        
         if isinstance(X_train, pd.DataFrame):
             ndx = X_train.index
             X_train = X_train.values
-        
             X_train = torch.tensor(X_train).float()
 
-        dataloader = DataLoader(X_train, 
+        dataloader = DataLoader(X_train,      
                                 batch_size=batch_size, 
                                 shuffle=shuffle, 
                                 num_workers=batch_size)
@@ -93,7 +98,6 @@ class AutoEncoder(nn.Module):
      
         criterion = nn.MSELoss()
         
-
         for i in tqdm(range(1, epochs+1)):
             for data in dataloader:
                 data = data.to(self.device)
@@ -110,15 +114,19 @@ class AutoEncoder(nn.Module):
                 assert  train_loss is not np.NaN
             
             
-            if (show_ever is not None) and ((i) % show_every == 0):    
+            if (show_every is not None) and ((i) % show_every == 0):    
                 result = pd.DataFrame( 
                     self.encoder(X_train.to(self.device))\
                         .detach().cpu().numpy(), index=ndx )\
-                        .add_prefix('AE_')
+                        .add_prefix('AE-')
                 result['Epoch'] = i
                 self.snapshots.append( result )
-                scatter(result['AE_0'], result['AE_1'], c=labels)
+                result['Labels'] = labels
+                sns.relplot(data=result, x='AE-0', y='AE-1', hue='Labels', kind='scatter', height=3)
                 title(f'Epoch {i}, loss={train_loss:2.2f}')
+                if self.save_snapshots:
+                    result['N'] = i
+                    self.snapshots.append(result)
                 show()
                 
     def transform(self, X):
@@ -129,7 +137,7 @@ class AutoEncoder(nn.Module):
             ndx = None
         X = torch.tensor(X).float().to(self.device)
         enc = self.encoder(X)
-        enc = pd.DataFrame( enc ).add_prefix('AE_').astype(float)
+        enc = pd.DataFrame( enc ).add_prefix('AE-').astype(float)
         if ndx is not None:
             enc.index = ndx
         return enc 
