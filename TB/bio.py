@@ -6,7 +6,6 @@ from Bio.Align.Applications import MuscleCommandline
 from Bio import AlignIO
 
 from Bio import SeqIO
-from Bio.Alphabet import generic_protein
 
 import tempfile
 from uuid import uuid1 as uuid
@@ -62,18 +61,17 @@ def multiple_sequence_alignment(records, output_fn='/var/www/html/dl/alignment.f
     return pd.DataFrame( np.array(result), index=index).sort_index()
 
 
-def fasta_to_df(fn):
-    fns = filename
+def fasta_to_df(fns):
     if isinstance(fns, str):
-        fns = [fn]
+        fns = [fns]
     sample = []
     sequence = []
     description = []
     records = []
     ids = []
     for fn in fns:
-        for record in SeqIO.parse(fn, "fasta", alphabet=generic_protein):
-            label = basename(fn).split('.')[0].replace('-', '_')[:10]
+        for record in SeqIO.parse(fn, "fasta"):
+            label = os.path.basename(fn).split('.')[0].replace('-', '_')[:10]
             descr = ' '.join( record.description.split()[1:] ) 
             seq = str( record.seq )
             if descr == 'hypothetical protein' or descr.startswith('putative') or descr=='':
