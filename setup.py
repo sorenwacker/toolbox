@@ -34,7 +34,10 @@ def package_tree(pkgroot):
 REQUIRES = [
     'tqdm', 
     'seaborn',
-    'missingno'
+    'missingno',
+    'pyteomics',
+    'lxml',
+    'ipywidgets'
 ]
 
 config = {
