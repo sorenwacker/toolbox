@@ -11,9 +11,14 @@ from tqdm.notebook import tqdm
 from matplotlib.pyplot import scatter, title, show
 
 
+print(f'CUDA is available: {torch.cuda.is_available()}')
+print(f'CUDA current device: {torch.cuda.current_device()} ({torch.cuda.get_device_name()}')
+
+      
 class AutoEncoder(nn.Module):
     def __init__(self, input_dim, latent_dim=2, layers=[64, 32], 
-                 add_sigmoid=False, dropout=0, device=None, save_snapshots=False):
+                 add_sigmoid=True, dropout=0, device=None, verbose=False,
+                 save_every=None, show_plots=False, random_state=None):
         """
         PyTorch based autoencoder providing a scikit-learn api.
         -----
@@ -32,11 +37,15 @@ class AutoEncoder(nn.Module):
             - device: CUDA device to use
         """
         
+        if random_state is not None:
+            torch.manual_seed(random_state)
+            
         super(AutoEncoder,self).__init__()
         
-        self.save_snapshots = save_snapshots
+        self.save_every = save_every
+        self.show_plots = show_plots
         self.snapshots = []
-
+        
         layout = [input_dim] + layers + [latent_dim]
         layout = [(i,j) for i, j in zip(layout[:-1], layout[1:])]
 
@@ -65,23 +74,36 @@ class AutoEncoder(nn.Module):
         self.snapshots = []
         self.device = device
         self.to(device)
-
-        for i in encoder:
-            print(i)
-        for i in decoder:
-            print(i)
+        self._epoch = 0
+        
+        current_device = torch.cuda.current_device()
+        current_device_name = torch.cuda.get_device_name(current_device)
+        
+        if verbose:
+            for i in encoder:
+                print(i)
+            for i in decoder:
+                print(i)
+            if torch.cuda.is_available():
+                print('Cuda available')
+            else:
+                print('Cuda is not available')
+            print(f'Using device {current_device} ({current_device_name})')
+        
         
     def forward(self,x):
         x = self.encoder(x)
         x = self.decoder(x)
         return x
 
+    
     def fit(self, X_train, epochs, batch_size=8, labels=None,
             num_workers=4, shuffle=True, hue=None,
-            lr=1e-4, show_every=10):
+            lr=1e-4):
         """
         Fitting function to train the neural network.
         """
+    
         
         
         if isinstance(X_train, pd.DataFrame):
@@ -92,13 +114,14 @@ class AutoEncoder(nn.Module):
         dataloader = DataLoader(X_train,      
                                 batch_size=batch_size, 
                                 shuffle=shuffle, 
-                                num_workers=batch_size)
+                                num_workers=num_workers)
         
         optimizer = optim.Adam(self.parameters(), lr=lr)
      
         criterion = nn.MSELoss()
         
         for i in tqdm(range(1, epochs+1)):
+            self._epoch += 1
             for data in dataloader:
                 data = data.to(self.device)
                 optimizer.zero_grad()
@@ -114,21 +137,19 @@ class AutoEncoder(nn.Module):
                 assert  train_loss is not np.NaN
             
             
-            if (show_every is not None) and ((i) % show_every == 0):    
+            if (self.save_every is not None) and ((i) % self.save_every == 0):    
                 result = pd.DataFrame( 
                     self.encoder(X_train.to(self.device))\
                         .detach().cpu().numpy(), index=ndx )\
                         .add_prefix('AE-')
-                result['Epoch'] = i
-                self.snapshots.append( result )
+                result['Epoch'] = self._epoch
                 result['Labels'] = labels
-                sns.relplot(data=result, x='AE-0', y='AE-1', hue='Labels', kind='scatter', height=3)
-                title(f'Epoch {i}, loss={train_loss:2.2f}')
-                if self.save_snapshots:
-                    result['N'] = i
-                    self.snapshots.append(result)
-                show()
-                
+                self.snapshots.append( result )
+                if self.show_plots:
+                    sns.relplot(data=result, x='AE-0', y='AE-1', hue='Labels', kind='scatter', height=3)
+                    title(f'Epoch {i}, loss={train_loss:2.2f}')
+                    show()
+
     def transform(self, X):
         if isinstance(X, pd.DataFrame):
             ndx = X.index

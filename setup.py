@@ -37,8 +37,11 @@ REQUIRES = [
     'missingno',
     'pyteomics',
     'lxml',
-    'ipywidgets'
-]
+    'ipywidgets',
+    'sklearn',
+    'optuna',
+    'matplotlib_venn'
+    ]
 
 config = {
     'description': 'My useful Python tools.',

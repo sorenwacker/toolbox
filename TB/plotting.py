@@ -11,7 +11,7 @@ from scipy.cluster.hierarchy import linkage, dendrogram, set_link_color_palette
 from scipy.spatial.distance import pdist, squareform
 from scipy.cluster import hierarchy
 
-def plot_roc(target, score, cutoff_target=None, ax=None, pos_label=None, 
+def plot_roc(target, score, cutoff_target=None, ax=None, pos_label=None, add_text=False,
              set_tick_labels=True, estimate_random=True, with_auc=True, **kwargs):
     ax = _activate_axis_(ax)
     if cutoff_target is not None:
@@ -19,11 +19,11 @@ def plot_roc(target, score, cutoff_target=None, ax=None, pos_label=None,
     fpr, tpr, _ = roc_curve(target, score, pos_label=pos_label)
     auc = roc_auc_score(target, score)
     plt.plot(fpr, tpr, **kwargs)
-    plt.text(0.75, 0.02,f'AUC={auc:4.2f}', size=8)
+    if add_text: plt.text(0.75, 0.04,f'AUC={auc:4.2f}', size=8)
     if estimate_random:
         plot_random_roc(target, 200, ax=ax)
     _plot_roc_defaults_(set_tick_labels=set_tick_labels, ax=ax)
-    return ax
+    return auc
 
 def _plot_roc_defaults_(set_tick_labels=True, ax=None, roc_percent=True):
     ax = _activate_axis_(ax)
