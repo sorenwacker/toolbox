@@ -46,7 +46,7 @@ REQUIRES = [
 config = {
     'description': 'My useful Python tools.',
     'author': 'Soren Wacker',
-    'url': 'github.org',
+    'url': 'https://github.com/sorenwacker/toolbox/',
     'download_url': 'github.org',
     'author_email': 'swacker@ucalgary.ca',
     'install_requires': REQUIRES,
