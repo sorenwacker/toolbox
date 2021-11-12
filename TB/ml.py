@@ -56,7 +56,7 @@ def knn_score(df, var_names, tgt_name, **params):
     
 
     
-def sklearn_cv_classification(X, y, base_model, params={}, X_test=None, n_folds=5, seeds=None):
+def sklearn_cv_classification(X, y, base_model, params={}, X_test=None, n_folds=5, seeds=None, score_func=balanced_accuracy_score):
     
     if seeds is None:
         seeds = [1]
@@ -92,11 +92,11 @@ def sklearn_cv_classification(X, y, base_model, params={}, X_test=None, n_folds=
             _model.fit(_X_train, _y_train)
             
             _pred = _model.predict(_X_valid)
-            _loss = accuracy_score( _y_valid, _pred )
+            _loss = score_func( _y_valid, _pred )
             
             cv_predictions.iloc[ndx_valid, 0] = _pred
                   
-            print(f'Fold {_n} accuracy: {_loss}')
+            print(f'Fold {_n} score: {_loss}')
             
             losses.append( _loss )
             
