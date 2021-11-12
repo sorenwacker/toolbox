@@ -183,8 +183,8 @@ def quick_pca(df, n_components=None, labels=None, plot=True, scale=True, **plot_
     res = res.add_prefix('PCA-')
     if labels is not None:
         res['label'] = list(labels)
-    if plot: sns.pairplot(res, hue='label' if labels is not None else None,
-                          height=4, **plot_kws)
+    if plot: sns.pairplot(res, hue='label' if labels is not None else None, **plot_kws)
+    res.index = df.index
     return res
     
 
