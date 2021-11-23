@@ -154,16 +154,29 @@ def legend_outside(ax=None, bbox_to_anchor=None, **kwargs):
     ax.legend(bbox_to_anchor=bbox_to_anchor, **kwargs)
     
 
+def scale(df, method, **kwargs):
+    if method == 'standart':
+        df.values = StandardScaler(**kwargs).fit_transform(df)
+    if method == 'robust':
+        df.values = RobustScaler(**kwargs).fit_transform(df)
+
+        
 def hierarchical_clustering(df, vmin=None, vmax=None, figsize=(8,8), top_height=2, left_width=2,
-                            xmaxticks=None, ymaxticks=None, metric='euclidean', cmap=None):
+                            xmaxticks=None, ymaxticks=None, metric='euclidean', cmap=None, scaling='standard',
+                            scaling_kws=None):
     '''based on heatmap function from
     http://nbviewer.ipython.org/github/herrfz/dataanalysis/
     blob/master/week3/svd_pca.ipynb
     Generates a heatmap from the input matrix.
     '''
-
+    
+    df_orig = df.copy()
     df = df.copy()
-
+    
+    if scaling is not None:
+        if scaling_kws is None: scaling_kws={}
+        scale(df, method=scaling, **scaling_kws)
+        
     # cm = plt.cm
     # cmap = cm.rainbow(np.linspace(0, 0, 1))
     # hierarchy.set_link_color_palette([mpl.colors.rgb2hex(rgb[:3]) for rgb in cmap])
@@ -191,8 +204,10 @@ def hierarchical_clustering(df, vmin=None, vmax=None, figsize=(8,8), top_height=
         ymaxticks = int( 5*main_h*total_height )
     
     dm = df.fillna(0).values
+    
     D1 = squareform(pdist(dm, metric=metric))
     D2 = squareform(pdist(dm.T, metric=metric))
+    
     fig = plt.figure(figsize=figsize)
     fig.set_tight_layout(False)
 
@@ -226,7 +241,7 @@ def hierarchical_clustering(df, vmin=None, vmax=None, figsize=(8,8), top_height=
     ax.yaxis.tick_right()
     ax.xaxis.tick_bottom()
 
-    clustered = df.iloc[Z1['leaves'][::-1], Z2['leaves']]
+    clustered = df_orig.iloc[Z1['leaves'][::-1], Z2['leaves']]
 
     ndx_y = np.linspace(0,len(clustered.index)-1, ymaxticks)
     ndx_x = np.linspace(0,len(clustered.columns)-1, xmaxticks)

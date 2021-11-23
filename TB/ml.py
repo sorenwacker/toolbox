@@ -56,7 +56,7 @@ def knn_score(df, var_names, tgt_name, **params):
     
 
     
-def sklearn_cv_classification(X, y, base_model, params={}, X_test=None, n_folds=5, seeds=None, score_func=balanced_accuracy_score):
+def sklearn_cv_classification(X, y, base_model, params={}, X_test=None, n_folds=5, seeds=None):
     
     if seeds is None:
         seeds = [1]
@@ -92,11 +92,11 @@ def sklearn_cv_classification(X, y, base_model, params={}, X_test=None, n_folds=
             _model.fit(_X_train, _y_train)
             
             _pred = _model.predict(_X_valid)
-            _loss = score_func( _y_valid, _pred )
+            _loss = accuracy_score( _y_valid, _pred )
             
             cv_predictions.iloc[ndx_valid, 0] = _pred
                   
-            print(f'Fold {_n} score: {_loss}')
+            print(f'Fold {_n} accuracy: {_loss}')
             
             losses.append( _loss )
             
@@ -180,13 +180,42 @@ def quick_pca(df, n_components=None, labels=None, plot=True, scale=True, **plot_
     pca = PCA(n_components)
     res = pd.DataFrame(pca.fit_transform(df))
     res.columns = res.columns.values + 1
-    res = res.add_prefix('PCA-')
+    res = res.add_prefix('PC-')
     if labels is not None:
         res['label'] = list(labels)
     if plot: sns.pairplot(res, hue='label' if labels is not None else None, **plot_kws)
     res.index = df.index
     return res
+
+
+def pycaret_score_threshold_analysis(pycaret_prediction):
+
+    score_thresholds = np.arange(0.5,0.95, 0.01)
+    accs = []
+    ns = []
+
+    for st in score_thresholds:
+        tmp = pycaret_prediction[pycaret_prediction.Score > st]
+        score = balanced_accuracy_score(tmp.DEATH_IND, tmp.Label)
+        accs.append(score)
+        ns.append(len(tmp)/len(pycaret_prediction))
+
+    plot(score_thresholds, accs, color='C0')
+    ylabel('Balanced accuracy', color='C0')
+    xlabel('Score threshold')
+    yticks(color='C0')
+
+    ax1 = gca()
+    ax2 = ax1.twinx()
+
+    plot(score_thresholds, ns, color='C2')
+
+    ylabel('Fraction of samples', color='C2')
+    yticks(color='C2')
+    grid()
     
+    title('Score theshold analysis')    
+
 
 # STOP
 
