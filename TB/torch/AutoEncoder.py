@@ -11,9 +11,6 @@ from tqdm.notebook import tqdm
 from matplotlib.pyplot import scatter, title, show
 
 
-print(f'CUDA is available: {torch.cuda.is_available()}')
-print(f'CUDA current device: {torch.cuda.current_device()} ({torch.cuda.get_device_name()}')
-
       
 class AutoEncoder(nn.Module):
     def __init__(self, input_dim, latent_dim=2, layers=[64, 32], 

@@ -7,9 +7,8 @@ from sklearn.metrics import roc_curve, roc_auc_score
 from scipy.stats import norm
 from matplotlib import pyplot as plt
 
-from scipy.cluster.hierarchy import linkage, dendrogram, set_link_color_palette
-from scipy.spatial.distance import pdist, squareform
-from scipy.cluster import hierarchy
+
+
 
 def plot_roc(target, score, cutoff_target=None, ax=None, pos_label=None, add_text=False,
              set_tick_labels=True, estimate_random=True, with_auc=True, **kwargs):
@@ -24,6 +23,7 @@ def plot_roc(target, score, cutoff_target=None, ax=None, pos_label=None, add_tex
         plot_random_roc(target, 200, ax=ax)
     _plot_roc_defaults_(set_tick_labels=set_tick_labels, ax=ax)
     return auc
+
 
 def _plot_roc_defaults_(set_tick_labels=True, ax=None, roc_percent=True):
     ax = _activate_axis_(ax)
@@ -47,11 +47,13 @@ def _plot_roc_defaults_(set_tick_labels=True, ax=None, roc_percent=True):
     plot_diagonal(linestyle='--', color='w')     
     return ax
 
+
 def plot_random_roc(labels, N, ax=None):
     ax = _activate_axis_(ax)
     for i in range(N):
         plt.plot(*_random_roc_(labels), alpha=0.01, linewidth=10, color='k', zorder=0)
     return ax
+
 
 def plot_diagonal(ax=None, **kwargs):
     ax = _activate_axis_(ax)
@@ -60,6 +62,7 @@ def plot_diagonal(ax=None, **kwargs):
              [np.min([x0, y0]), np.min([x1, y1])], **kwargs)
     plt.xlim((x0, x1))
     plt.ylim((y0, y1))
+
 
 def plot_hlines(hlines=None, ax=None, color=None, **kwargs):
     ax = _activate_axis_(ax)
@@ -72,6 +75,7 @@ def plot_hlines(hlines=None, ax=None, color=None, **kwargs):
     plt.xlim((x0, x1))
     plt.ylim((y0, y1)) 
 
+
 def plot_vlines(vlines=None, ax=None, color=None, **kwargs):
     ax = _activate_axis_(ax)
     x0, x1, y0, y1 = _axis_dimensions_(ax)
@@ -83,6 +87,7 @@ def plot_vlines(vlines=None, ax=None, color=None, **kwargs):
     plt.xlim((x0, x1))
     plt.ylim((y0, y1))
 
+
 def _random_roc_(y_train, ax=None):
     '''
     Generates random prediction and returns fpr, tpr used to plot a ROC-curve.
@@ -91,10 +96,12 @@ def _random_roc_(y_train, ax=None):
     fpr, tpr, _ = roc_curve(y_train, rand_prob, pos_label=1)
     return fpr, tpr
 
+
 def _activate_axis_(ax=None):
     if ax is not None:
         plt.sca(ax)
     return plt.gca()
+
 
 def _axis_dimensions_(ax=None):
     ax = _activate_axis_(ax)
@@ -102,15 +109,14 @@ def _axis_dimensions_(ax=None):
     y0, y1 = ax.get_ylim()
     return (x0, x1, y0, y1)
 
+
 def heatmap(dm, vmin=0, vmax=1):
-    '''based on heatmap function from
-    http://nbviewer.ipython.org/github/herrfz/dataanalysis/
-    blob/master/week3/svd_pca.ipynb
+    '''
+    Based on heatmap function from
+    http://nbviewer.ipython.org/github/herrfz/dataanalysis/blob/master/week3/svd_pca.ipynb
     Generates a heatmap from the input matrix.
     '''
-    from matplotlib import pyplot as plt
-    from scipy.cluster.hierarchy import linkage, dendrogram
-    from scipy.spatial.distance import pdist, squareform
+
     D1 = squareform(pdist(dm, metric='euclidean'))
     D2 = squareform(pdist(dm.T, metric='euclidean'))
     f = plt.figure(figsize=(8, 8))
@@ -139,6 +145,7 @@ def heatmap(dm, vmin=0, vmax=1):
     # cbar=plt.colorbar(im,shrink=0.77,ticks=np.linspace(vmin,vmax,3))
     return {'ordered': D, 'rorder': Z1['leaves'], 'corder': Z2['leaves']}
 
+
 def legend_outside(ax=None, bbox_to_anchor=None, **kwargs):
     """
     Places the legend outside the current axis.
@@ -154,86 +161,4 @@ def legend_outside(ax=None, bbox_to_anchor=None, **kwargs):
     ax.legend(bbox_to_anchor=bbox_to_anchor, **kwargs)
     
 
-def hierarchical_clustering(df, vmin=None, vmax=None, figsize=(8,8), top_height=2, left_width=2,
-                            xmaxticks=None, ymaxticks=None, metric='euclidean', cmap=None):
-    '''based on heatmap function from
-    http://nbviewer.ipython.org/github/herrfz/dataanalysis/
-    blob/master/week3/svd_pca.ipynb
-    Generates a heatmap from the input matrix.
-    '''
 
-    df = df.copy()
-
-    # cm = plt.cm
-    # cmap = cm.rainbow(np.linspace(0, 0, 1))
-    # hierarchy.set_link_color_palette([mpl.colors.rgb2hex(rgb[:3]) for rgb in cmap])
-    
-    # Subplot sizes
-    total_width, total_height = figsize 
-    
-    main_h = 1-(top_height/total_height)
-    main_w = 1-(left_width/total_width)
-    
-    gap_x = (0.1/total_width)
-    gap_y = (0.1/total_height) 
-    
-    left_h = main_h
-    left_w = 1-main_w
-
-    top_h = 1-main_h
-    top_w = main_w
-    
-    ydim, xdim = df.shape
-
-    if xmaxticks is None:
-        xmaxticks = int( 5*main_w*total_width )
-    if ymaxticks is None:
-        ymaxticks = int( 5*main_h*total_height )
-    
-    dm = df.fillna(0).values
-    D1 = squareform(pdist(dm, metric=metric))
-    D2 = squareform(pdist(dm.T, metric=metric))
-    fig = plt.figure(figsize=figsize)
-    fig.set_tight_layout(False)
-
-    # add left dendrogram
-    ax1 = fig.add_axes([0, 0, left_w-gap_x, left_h], frameon=False)
-    Y = linkage(D1, method='complete')
-    Z1 = dendrogram(Y, orientation='left', color_threshold=0, above_threshold_color='k')
-    ax1.set_xticks([])
-    ax1.set_yticks([])
-    # add top dendrogram
-    ax2 = fig.add_axes([left_w, main_h+gap_y, top_w, top_h-gap_y], frameon=False)
-    Y = linkage(D2, method='complete')
-    Z2 = dendrogram(Y, color_threshold=0, above_threshold_color='k')
-    ax2.set_xticks([])
-    ax2.set_yticks([])
-    # add matrix plot
-    axmatrix = fig.add_axes([left_w, 0, main_w, main_h])
-    idx1 = Z1['leaves']
-    idx2 = Z2['leaves']
-    D = dm[idx1, :]
-    D = D[:, idx2]
-
-    if cmap is None: cmap='hot'
-    fig = axmatrix.matshow(D[::-1], aspect='auto', cmap=cmap,
-                           vmin=vmin, vmax=vmax)
-
-    axmatrix.set_xticks([])
-    axmatrix.set_yticks([])
-    
-    ax = plt.gca()
-    ax.yaxis.tick_right()
-    ax.xaxis.tick_bottom()
-
-    clustered = df.iloc[Z1['leaves'][::-1], Z2['leaves']]
-
-    ndx_y = np.linspace(0,len(clustered.index)-1, ymaxticks)
-    ndx_x = np.linspace(0,len(clustered.columns)-1, xmaxticks)
-    ndx_y = [int(i) for i in ndx_y]
-    ndx_x = [int(i) for i in ndx_x]
-
-    _ = plt.yticks(ndx_y, clustered.iloc[ndx_y].index)
-    _ = plt.xticks(ndx_x, clustered.columns[ndx_x], rotation=90)
-
-    return clustered, fig
