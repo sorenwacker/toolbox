@@ -56,5 +56,5 @@ def stratify_df(df, columns, n_sample=None, random_state=None):
     if n_sample is None:
         n_sample = count_per_group.min().min()
         print(f'Using n_sample={n_sample}.')
-    stratified = df.groupby(columns, group_keys=False).apply(lambda x: x.sample(min(len(x), n_sample, random_state=random_state)))
+    stratified = df.groupby(columns, group_keys=False).apply(lambda x: x.sample(min(len(x), n_sample), random_state=random_state))
     return stratified
