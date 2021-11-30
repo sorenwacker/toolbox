@@ -46,3 +46,7 @@ def get_dublicate_col_values(df, col_name):
     values = val_counts[val_counts > 1].index
     dublicates = df[df[col_name].isin(values)].sort_values(col_name)
     return dublicates
+
+def sort_df_by_row_count(df, axis=1):
+    ndx = df.sum(axis=axis).sort_values(ascending=False).index
+    return df.reindex(ndx, axis=axis%1)
