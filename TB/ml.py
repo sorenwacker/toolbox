@@ -380,13 +380,42 @@ def quick_pca(df, n_components=None, labels=None, plot=True, scale=True, **plot_
     pca = PCA(n_components)
     res = pd.DataFrame(pca.fit_transform(df))
     res.columns = res.columns.values + 1
-    res = res.add_prefix('PCA-')
+    res = res.add_prefix('PC-')
     if labels is not None:
         res['label'] = list(labels)
-    if plot: sns.pairplot(res, hue='label' if labels is not None else None,
-                          height=4, **plot_kws)
+    if plot: sns.pairplot(res, hue='label' if labels is not None else None, **plot_kws)
+    res.index = df.index
     return res
+
+
+def pycaret_score_threshold_analysis(pycaret_prediction):
+
+    score_thresholds = np.arange(0.5,0.95, 0.01)
+    accs = []
+    ns = []
+
+    for st in score_thresholds:
+        tmp = pycaret_prediction[pycaret_prediction.Score > st]
+        score = balanced_accuracy_score(tmp.DEATH_IND, tmp.Label)
+        accs.append(score)
+        ns.append(len(tmp)/len(pycaret_prediction))
+
+    plot(score_thresholds, accs, color='C0')
+    ylabel('Balanced accuracy', color='C0')
+    xlabel('Score threshold')
+    yticks(color='C0')
+
+    ax1 = gca()
+    ax2 = ax1.twinx()
+
+    plot(score_thresholds, ns, color='C2')
+
+    ylabel('Fraction of samples', color='C2')
+    yticks(color='C2')
+    grid()
     
+    title('Score theshold analysis')    
+
 
 # STOP
 
