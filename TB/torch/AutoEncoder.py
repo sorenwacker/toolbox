@@ -11,12 +11,16 @@ from tqdm.notebook import tqdm
 from matplotlib.pyplot import scatter, title, show
 
 
+<<<<<<< HEAD
 print(f"CUDA is available: {torch.cuda.is_available()}")
 print(
     f"CUDA current device: {torch.cuda.current_device()} ({torch.cuda.get_device_name()}"
 )
 
 
+=======
+      
+>>>>>>> 61574ef225884c808a11b39a52ed5a87fc776911
 class AutoEncoder(nn.Module):
     def __init__(
         self,

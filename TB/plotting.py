@@ -6,9 +6,8 @@ from sklearn.metrics import roc_curve, roc_auc_score
 from scipy.stats import norm
 from matplotlib import pyplot as pl
 
-from scipy.cluster.hierarchy import linkage, dendrogram, set_link_color_palette
-from scipy.spatial.distance import pdist, squareform
-from scipy.cluster import hierarchy
+
+
 
 from pathlib import Path as P
 
@@ -81,6 +80,7 @@ def plot_diagonal(ax=None, **kwargs):
     pl.ylim((y0, y1))
 
 
+
 def plot_hlines(hlines=None, ax=None, color=None, **kwargs):
     ax = _activate_axis_(ax)
     x0, x1, y0, y1 = _axis_dimensions_(ax)
@@ -93,6 +93,7 @@ def plot_hlines(hlines=None, ax=None, color=None, **kwargs):
     pl.ylim((y0, y1))
 
 
+
 def plot_vlines(vlines=None, ax=None, color=None, **kwargs):
     ax = _activate_axis_(ax)
     x0, x1, y0, y1 = _axis_dimensions_(ax)
@@ -103,6 +104,7 @@ def plot_vlines(vlines=None, ax=None, color=None, **kwargs):
             pl.vlines(vline, y0 - 0.2, y1 + 1.2, color=color, **kwargs)
     pl.xlim((x0, x1))
     pl.ylim((y0, y1))
+
 
 
 def _random_roc_(y_train, ax=None):
@@ -120,6 +122,7 @@ def _activate_axis_(ax=None):
     return pl.gca()
 
 
+
 def _axis_dimensions_(ax=None):
     ax = _activate_axis_(ax)
     x0, x1 = ax.get_xlim()
@@ -128,6 +131,7 @@ def _axis_dimensions_(ax=None):
 
 
 def heatmap(dm, vmin=0, vmax=1):
+<<<<<<< HEAD
     """based on heatmap function from
     http://nbviewer.ipython.org/github/herrfz/dataanalysis/
     blob/master/week3/svd_pca.ipynb
@@ -140,6 +144,17 @@ def heatmap(dm, vmin=0, vmax=1):
     D1 = squareform(pdist(dm, metric="euclidean"))
     D2 = squareform(pdist(dm.T, metric="euclidean"))
     f = pl.figure(figsize=(8, 8))
+=======
+    '''
+    Based on heatmap function from
+    http://nbviewer.ipython.org/github/herrfz/dataanalysis/blob/master/week3/svd_pca.ipynb
+    Generates a heatmap from the input matrix.
+    '''
+
+    D1 = squareform(pdist(dm, metric='euclidean'))
+    D2 = squareform(pdist(dm.T, metric='euclidean'))
+    f = plt.figure(figsize=(8, 8))
+>>>>>>> 61574ef225884c808a11b39a52ed5a87fc776911
     # add first dendrogram
     ax1 = f.add_axes([0.09, 0.1, 0.2, 0.6])
     Y = linkage(D1, method="complete")
@@ -165,6 +180,7 @@ def heatmap(dm, vmin=0, vmax=1):
     return {"ordered": D, "rorder": Z1["leaves"], "corder": Z2["leaves"]}
 
 
+
 def legend_outside(ax=None, bbox_to_anchor=None, **kwargs):
     """
     Places the legend outside the current axis.
@@ -178,6 +194,7 @@ def legend_outside(ax=None, bbox_to_anchor=None, **kwargs):
     if bbox_to_anchor is None:
         bbox_to_anchor = (1, 1.05)
     ax.legend(bbox_to_anchor=bbox_to_anchor, **kwargs)
+
 
 
 def scale(df, method, **kwargs):
@@ -317,3 +334,4 @@ def savefig(name, notebook_name=None, fmt=["pdf", "png"], bbox_inches="tight", d
 
 # alias
 sf = savefig
+  
