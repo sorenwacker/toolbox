@@ -131,7 +131,6 @@ def _axis_dimensions_(ax=None):
 
 
 def heatmap(dm, vmin=0, vmax=1):
-<<<<<<< HEAD
     """based on heatmap function from
     http://nbviewer.ipython.org/github/herrfz/dataanalysis/
     blob/master/week3/svd_pca.ipynb
@@ -144,17 +143,6 @@ def heatmap(dm, vmin=0, vmax=1):
     D1 = squareform(pdist(dm, metric="euclidean"))
     D2 = squareform(pdist(dm.T, metric="euclidean"))
     f = pl.figure(figsize=(8, 8))
-=======
-    '''
-    Based on heatmap function from
-    http://nbviewer.ipython.org/github/herrfz/dataanalysis/blob/master/week3/svd_pca.ipynb
-    Generates a heatmap from the input matrix.
-    '''
-
-    D1 = squareform(pdist(dm, metric='euclidean'))
-    D2 = squareform(pdist(dm.T, metric='euclidean'))
-    f = plt.figure(figsize=(8, 8))
->>>>>>> 61574ef225884c808a11b39a52ed5a87fc776911
     # add first dendrogram
     ax1 = f.add_axes([0.09, 0.1, 0.2, 0.6])
     Y = linkage(D1, method="complete")

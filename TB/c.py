@@ -40,7 +40,6 @@ def log2p1(x):
 
 # STOP
 
-from . import tools
 
 with open(__file__, "r") as this_file:
     for line in this_file.readlines():
