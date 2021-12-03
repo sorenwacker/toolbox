@@ -16,30 +16,34 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 import matplotlib as mpl
 
+from .plotting import savefig as sf
+
 # mpl.rcParams.update(mpl.rcParamsDefault)
 
-plt.rcParams['figure.facecolor'] = 'w'
-plt.rcParams['figure.dpi'] = 150
+plt.rcParams["figure.facecolor"] = "w"
+plt.rcParams["figure.dpi"] = 150
 
 pd.options.display.max_colwidth = 100
-pd.options.display.max_columns  = 100
+pd.options.display.max_columns = 100
 
 
 def today():
-    return date.today().strftime('%y%m%d')
+    return date.today().strftime("%y%m%d")
+
 
 def log2p1(x):
-    try: 
-        return np.log2(x+1)
+    try:
+        return np.log2(x + 1)
     except:
         return x
+
 
 # STOP
 
 from . import tools
 
-with open(__file__, 'r') as this_file:
+with open(__file__, "r") as this_file:
     for line in this_file.readlines():
-        if re.search('STOP', line):
+        if re.search("STOP", line):
             break
         print(line, end="")

@@ -1,6 +1,7 @@
 import plotly.graph_objects as go
 import networkx as nx
 
+
 def plotly_networkx_graph(G, pos=None, title=None, node_colors=None):
 
     if pos is None:
@@ -19,10 +20,12 @@ def plotly_networkx_graph(G, pos=None, title=None, node_colors=None):
         edge_y.append(None)
 
     edge_trace = go.Scatter(
-        x=edge_x, y=edge_y,
-        line=dict(width=0.5, color='#888'),
-        hoverinfo='none',
-        mode='lines')
+        x=edge_x,
+        y=edge_y,
+        line=dict(width=0.5, color="#888"),
+        hoverinfo="none",
+        mode="lines",
+    )
 
     node_x = []
     node_y = []
@@ -34,36 +37,36 @@ def plotly_networkx_graph(G, pos=None, title=None, node_colors=None):
         node_y.append(y)
 
     node_trace = go.Scatter(
-        x=node_x, y=node_y,
-        mode='markers',
-        text = list(G.nodes),
-        hoverinfo='text',
+        x=node_x,
+        y=node_y,
+        mode="markers",
+        text=list(G.nodes),
+        hoverinfo="text",
         marker=dict(
             showscale=True,
             # colorscale options
             #'Greys' | 'YlGnBu' | 'Greens' | 'YlOrRd' | 'Bluered' | 'RdBu' |
             #'Reds' | 'Blues' | 'Picnic' | 'Rainbow' | 'Portland' | 'Jet' |
             #'Hot' | 'Blackbody' | 'Earth' | 'Electric' | 'Viridis' |
-            colorscale='YlGnBu',
+            colorscale="YlGnBu",
             reversescale=True,
             color=node_c,
             size=10,
-            colorbar=dict(
-                thickness=15,
-                title='',
-                xanchor='left',
-                titleside='right'
-            ),
-            line_width=2))
-    
-    fig = go.Figure(data=[edge_trace, node_trace],
-             layout=go.Layout(
-                title=title,
-                titlefont_size=16,
-                showlegend=False,
-                hovermode='closest',
-                margin=dict(b=20,l=5,r=5,t=40),
-                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
-                )
+            colorbar=dict(thickness=15, title="", xanchor="left", titleside="right"),
+            line_width=2,
+        ),
+    )
+
+    fig = go.Figure(
+        data=[edge_trace, node_trace],
+        layout=go.Layout(
+            title=title,
+            titlefont_size=16,
+            showlegend=False,
+            hovermode="closest",
+            margin=dict(b=20, l=5, r=5, t=40),
+            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        ),
+    )
     return fig.show()
