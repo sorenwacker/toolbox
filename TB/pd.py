@@ -61,14 +61,18 @@ def get_dublicate_col_values(df, col_name):
     dublicates = df[df[col_name].isin(values)].sort_values(col_name)
     return dublicates
 
+
 def sort_df_by_row_count(df, axis=1, ascending=True):
     ndx = df.sum(axis=axis).sort_values(ascending=ascending).index
-    return df.reindex(ndx, axis=(axis+1) % 2)
+    return df.reindex(ndx, axis=(axis + 1) % 2)
+
 
 def stratify_df(df, columns, n_sample=None, random_state=None):
-    count_per_group = df.groupby(columns).count().iloc[:,0]
+    count_per_group = df.groupby(columns).count().iloc[:, 0]
     if n_sample is None:
         n_sample = count_per_group.min().min()
-        print(f'Using n_sample={n_sample}.')
-    stratified = df.groupby(columns, group_keys=False).apply(lambda x: x.sample(min(len(x), n_sample), random_state=random_state))
+        print(f"Using n_sample={n_sample}.")
+    stratified = df.groupby(columns, group_keys=False).apply(
+        lambda x: x.sample(min(len(x), n_sample), random_state=random_state)
+    )
     return stratified

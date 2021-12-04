@@ -22,7 +22,7 @@ def multiple_sequence_alignment(
     index=None,
 ):
     """Then go to https://www.ncbi.nlm.nih.gov/projects/msaviewer/
-       https://soerendip.com/dl/alignment.fasta
+    https://soerendip.com/dl/alignment.fasta
     """
 
     if isinstance(records[0], str):

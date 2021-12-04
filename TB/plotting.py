@@ -3,11 +3,12 @@ import seaborn as sns
 import matplotlib as mpl
 
 from sklearn.metrics import roc_curve, roc_auc_score
-from scipy.stats import norm
 from matplotlib import pyplot as pl
 
-
-
+from scipy.cluster.hierarchy import linkage, dendrogram, set_link_color_palette
+from scipy.spatial.distance import pdist, squareform
+from scipy.cluster import hierarchy
+from scipy.stats import norm
 
 from pathlib import Path as P
 
@@ -36,6 +37,21 @@ def plot_roc(
         plot_random_roc(target, 200, ax=ax)
     _plot_roc_defaults_(set_tick_labels=set_tick_labels, ax=ax)
     return auc
+
+
+def _classify(i, value, inverse=False):
+    """
+    Takes in integer i and a reference value and returns
+    True when i <= the reference value and False instead.
+    - inverse: True returns
+    """
+    if inverse is False:
+        return i > value
+    else:
+        return i <= value
+
+
+classify = np.vectorize(_classify)
 
 
 def _plot_roc_defaults_(set_tick_labels=True, ax=None, roc_percent=True):
@@ -80,7 +96,6 @@ def plot_diagonal(ax=None, **kwargs):
     pl.ylim((y0, y1))
 
 
-
 def plot_hlines(hlines=None, ax=None, color=None, **kwargs):
     ax = _activate_axis_(ax)
     x0, x1, y0, y1 = _axis_dimensions_(ax)
@@ -93,7 +108,6 @@ def plot_hlines(hlines=None, ax=None, color=None, **kwargs):
     pl.ylim((y0, y1))
 
 
-
 def plot_vlines(vlines=None, ax=None, color=None, **kwargs):
     ax = _activate_axis_(ax)
     x0, x1, y0, y1 = _axis_dimensions_(ax)
@@ -104,7 +118,6 @@ def plot_vlines(vlines=None, ax=None, color=None, **kwargs):
             pl.vlines(vline, y0 - 0.2, y1 + 1.2, color=color, **kwargs)
     pl.xlim((x0, x1))
     pl.ylim((y0, y1))
-
 
 
 def _random_roc_(y_train, ax=None):
@@ -120,7 +133,6 @@ def _activate_axis_(ax=None):
     if ax is not None:
         pl.sca(ax)
     return pl.gca()
-
 
 
 def _axis_dimensions_(ax=None):
@@ -168,7 +180,6 @@ def heatmap(dm, vmin=0, vmax=1):
     return {"ordered": D, "rorder": Z1["leaves"], "corder": Z2["leaves"]}
 
 
-
 def legend_outside(ax=None, bbox_to_anchor=None, **kwargs):
     """
     Places the legend outside the current axis.
@@ -184,119 +195,6 @@ def legend_outside(ax=None, bbox_to_anchor=None, **kwargs):
     ax.legend(bbox_to_anchor=bbox_to_anchor, **kwargs)
 
 
-
-def scale(df, method, **kwargs):
-    if method == "standart":
-        df.values = StandardScaler(**kwargs).fit_transform(df)
-    if method == "robust":
-        df.values = RobustScaler(**kwargs).fit_transform(df)
-
-
-def hierarchical_clustering(
-    df,
-    vmin=None,
-    vmax=None,
-    figsize=(8, 8),
-    top_height=2,
-    left_width=2,
-    xmaxticks=None,
-    ymaxticks=None,
-    metric="euclidean",
-    cmap=None,
-    scaling="standard",
-    scaling_kws=None,
-):
-    """based on heatmap function from
-    http://nbviewer.ipython.org/github/herrfz/dataanalysis/
-    blob/master/week3/svd_pca.ipynb
-    Generates a heatmap from the input matrix.
-    """
-
-    df_orig = df.copy()
-    df = df.copy()
-
-    if scaling is not None:
-        if scaling_kws is None:
-            scaling_kws = {}
-        scale(df, method=scaling, **scaling_kws)
-
-    # cm = pl.cm
-    # cmap = cm.rainbow(np.linspace(0, 0, 1))
-    # hierarchy.set_link_color_palette([mpl.colors.rgb2hex(rgb[:3]) for rgb in cmap])
-
-    # Subplot sizes
-    total_width, total_height = figsize
-
-    main_h = 1 - (top_height / total_height)
-    main_w = 1 - (left_width / total_width)
-
-    gap_x = 0.1 / total_width
-    gap_y = 0.1 / total_height
-
-    left_h = main_h
-    left_w = 1 - main_w
-
-    top_h = 1 - main_h
-    top_w = main_w
-
-    ydim, xdim = df.shape
-
-    if xmaxticks is None:
-        xmaxticks = int(5 * main_w * total_width)
-    if ymaxticks is None:
-        ymaxticks = int(5 * main_h * total_height)
-
-    dm = df.fillna(0).values
-
-    D1 = squareform(pdist(dm, metric=metric))
-    D2 = squareform(pdist(dm.T, metric=metric))
-
-    fig = pl.figure(figsize=figsize)
-    fig.set_tight_layout(False)
-
-    # add left dendrogram
-    ax1 = fig.add_axes([0, 0, left_w - gap_x, left_h], frameon=False)
-    Y = linkage(D1, method="complete")
-    Z1 = dendrogram(Y, orientation="left", color_threshold=0, above_threshold_color="k")
-    ax1.set_xticks([])
-    ax1.set_yticks([])
-    # add top dendrogram
-    ax2 = fig.add_axes([left_w, main_h + gap_y, top_w, top_h - gap_y], frameon=False)
-    Y = linkage(D2, method="complete")
-    Z2 = dendrogram(Y, color_threshold=0, above_threshold_color="k")
-    ax2.set_xticks([])
-    ax2.set_yticks([])
-    # add matrix plot
-    axmatrix = fig.add_axes([left_w, 0, main_w, main_h])
-    idx1 = Z1["leaves"]
-    idx2 = Z2["leaves"]
-    D = dm[idx1, :]
-    D = D[:, idx2]
-
-    if cmap is None:
-        cmap = "hot"
-    fig = axmatrix.matshow(D[::-1], aspect="auto", cmap=cmap, vmin=vmin, vmax=vmax)
-
-    axmatrix.set_xticks([])
-    axmatrix.set_yticks([])
-
-    ax = pl.gca()
-    ax.yaxis.tick_right()
-    ax.xaxis.tick_bottom()
-
-    clustered = df_orig.iloc[Z1["leaves"][::-1], Z2["leaves"]]
-
-    ndx_y = np.linspace(0, len(clustered.index) - 1, ymaxticks)
-    ndx_x = np.linspace(0, len(clustered.columns) - 1, xmaxticks)
-    ndx_y = [int(i) for i in ndx_y]
-    ndx_x = [int(i) for i in ndx_x]
-
-    _ = pl.yticks(ndx_y, clustered.iloc[ndx_y].index)
-    _ = pl.xticks(ndx_x, clustered.columns[ndx_x], rotation=90)
-
-    return clustered, fig
-
-
 def savefig(name, notebook_name=None, fmt=["pdf", "png"], bbox_inches="tight", dpi=300):
     fig = pl.gcf()
     name = str(name)
@@ -304,22 +202,21 @@ def savefig(name, notebook_name=None, fmt=["pdf", "png"], bbox_inches="tight", d
     output = P("output")
 
     if notebook_name:
-        prefix = f'{notebook_name}__'
-        output = output/notebook_name
+        prefix = f"{notebook_name}__"
+        output = output / notebook_name
     else:
-        prefix = ''
-    
-    name = prefix+name
+        prefix = ""
 
+    name = prefix + name
 
     for suffix in fmt:
-        _o = output/suffix
+        _o = output / suffix
         _o.mkdir(parents=True, exist_ok=True)
         suffix = f".{suffix}"
-        fn = (_o/name).with_suffix(suffix)
+        fn = (_o / name).with_suffix(suffix)
         fig.savefig(fn, bbox_inches=bbox_inches, dpi=dpi)
-        print(f'Saved: {fn.resolve()}')
+        print(f"Saved: {fn.resolve()}")
+
 
 # alias
 sf = savefig
-  

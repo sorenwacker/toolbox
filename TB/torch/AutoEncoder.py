@@ -11,16 +11,12 @@ from tqdm.notebook import tqdm
 from matplotlib.pyplot import scatter, title, show
 
 
-<<<<<<< HEAD
 print(f"CUDA is available: {torch.cuda.is_available()}")
 print(
     f"CUDA current device: {torch.cuda.current_device()} ({torch.cuda.get_device_name()}"
 )
 
 
-=======
-      
->>>>>>> 61574ef225884c808a11b39a52ed5a87fc776911
 class AutoEncoder(nn.Module):
     def __init__(
         self,
@@ -41,9 +37,9 @@ class AutoEncoder(nn.Module):
         Args:
             - input_dim: int, number of input and output features
                 for the neural network.
-            - latent_dim: int, dimension of the latent or encoded 
+            - latent_dim: int, dimension of the latent or encoded
                 space.
-            - layers: Array(int), defines the architecture of the 
+            - layers: Array(int), defines the architecture of the
                 hidden layers.
             - add_sigmoid: bool, whether or not to add a sigmoida
                 transformation

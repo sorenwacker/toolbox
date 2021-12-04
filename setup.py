@@ -22,7 +22,7 @@ _version = versioneer.get_version()
 
 
 def package_tree(pkgroot):
-    """ Get list of packages by walking the directory structure and
+    """Get list of packages by walking the directory structure and
     including all dirs that have an __init__.py or are named test.
     """
     subdirs = [

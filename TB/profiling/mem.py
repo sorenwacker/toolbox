@@ -26,14 +26,16 @@ def memory_monitor(command_queue: Queue, poll_interval=1):
             if max_rss > old_max:
                 old_max = max_rss
                 snapshot = tracemalloc.take_snapshot()
-                print(datetime.now(), 'max RSS', max_rss)
+                print(datetime.now(), "max RSS", max_rss)
 
 
-def display_top(snapshot, key_type='lineno', limit=3):
-    snapshot = snapshot.filter_traces((
-        tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
-        tracemalloc.Filter(False, "<unknown>"),
-    ))
+def display_top(snapshot, key_type="lineno", limit=3):
+    snapshot = snapshot.filter_traces(
+        (
+            tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
+            tracemalloc.Filter(False, "<unknown>"),
+        )
+    )
     top_stats = snapshot.statistics(key_type)
 
     print("Top %s lines" % limit)
@@ -41,11 +43,12 @@ def display_top(snapshot, key_type='lineno', limit=3):
         frame = stat.traceback[0]
         # replace "/path/to/module/file.py" with "module/file.py"
         filename = os.sep.join(frame.filename.split(os.sep)[-2:])
-        print("#%s: %s:%s: %.1f KiB"
-              % (index, filename, frame.lineno, stat.size / 1024))
+        print(
+            "#%s: %s:%s: %.1f KiB" % (index, filename, frame.lineno, stat.size / 1024)
+        )
         line = linecache.getline(frame.filename, frame.lineno).strip()
         if line:
-            print('    %s' % line)
+            print("    %s" % line)
 
     other = top_stats[limit:]
     if other:
@@ -62,7 +65,7 @@ def memory_profile_function(func, *args, **kwargs):
     monitor_thread.start()
     try:
         most_common = func(*args, **kwargs)
-        print('Top prefixes:', most_common)
+        print("Top prefixes:", most_common)
     finally:
-        queue.put('stop')
+        queue.put("stop")
         monitor_thread.join()
