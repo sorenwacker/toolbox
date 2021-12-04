@@ -1,3 +1,10 @@
+
+import missingno as msno
+import pandas as pd
+import numpy as np
+import xgboost as xgb
+import seaborn as sns
+
 from sklearn.ensemble import (
     RandomForestClassifier,
     GradientBoostingClassifier,
@@ -25,105 +32,133 @@ from sklearn.metrics import (
     mean_squared_error,
 )
 from sklearn.decomposition import PCA
+
+
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix, accuracy_score
 from scipy.cluster.hierarchy import linkage, dendrogram, set_link_color_palette
 from scipy.spatial.distance import pdist, squareform
 from scipy.cluster import hierarchy
 
-import missingno
+from matplotlib import pyplot as pl
 
 
-def hierarchical_clustering(df, vmin=None, vmax=None, figsize=(8,8), top_height=2, left_width=2,
-                            xmaxticks=None, ymaxticks=None, metric='euclidean', cmap=None):
-    '''based on heatmap function from
+def hierarchical_clustering(
+    df,
+    vmin=None,
+    vmax=None,
+    show='scaled',
+    figsize=(8, 8),
+    top_height=2,
+    left_width=2,
+    xmaxticks=None,
+    ymaxticks=None,
+    metric="euclidean",
+    cmap=None,
+    scaling="standard",
+    scaling_kws=None,
+):
+    """based on heatmap function from
     http://nbviewer.ipython.org/github/herrfz/dataanalysis/
     blob/master/week3/svd_pca.ipynb
     Generates a heatmap from the input matrix.
-    '''
+    """
 
+    df_orig = df.copy()
     df = df.copy()
 
-    # cm = plt.cm
+    if scaling is not None:
+        if scaling_kws is None:
+            scaling_kws = {}
+        df = scale_dataframe(df, how=scaling, **scaling_kws)
+        
+    # cm = pl.cm
     # cmap = cm.rainbow(np.linspace(0, 0, 1))
     # hierarchy.set_link_color_palette([mpl.colors.rgb2hex(rgb[:3]) for rgb in cmap])
-    
-    # Subplot sizes
-    total_width, total_height = figsize 
-    
-    main_h = 1-(top_height/total_height)
-    main_w = 1-(left_width/total_width)
-    
-    gap_x = (0.1/total_width)
-    gap_y = (0.1/total_height) 
-    
-    left_h = main_h
-    left_w = 1-main_w
 
-    top_h = 1-main_h
+    # Subplot sizes
+    total_width, total_height = figsize
+
+    main_h = 1 - (top_height / total_height)
+    main_w = 1 - (left_width / total_width)
+
+    gap_x = 0.1 / total_width
+    gap_y = 0.1 / total_height
+
+    left_h = main_h
+    left_w = 1 - main_w
+
+    top_h = 1 - main_h
     top_w = main_w
-    
+
     ydim, xdim = df.shape
 
     if xmaxticks is None:
-        xmaxticks = int( 5*main_w*total_width )
+        xmaxticks = int(5 * main_w * total_width)
     if ymaxticks is None:
-        ymaxticks = int( 5*main_h*total_height )
-    
+        ymaxticks = int(5 * main_h * total_height)
+
     dm = df.fillna(0).values
+
     D1 = squareform(pdist(dm, metric=metric))
     D2 = squareform(pdist(dm.T, metric=metric))
-    fig = plt.figure(figsize=figsize)
+
+    fig = pl.figure(figsize=figsize)
     fig.set_tight_layout(False)
 
     # add left dendrogram
-    ax1 = fig.add_axes([0, 0, left_w-gap_x, left_h], frameon=False)
-    Y = linkage(D1, method='complete')
-    Z1 = dendrogram(Y, orientation='left', color_threshold=0, above_threshold_color='k')
+    ax1 = fig.add_axes([0, 0, left_w - gap_x, left_h], frameon=False)
+    Y = linkage(D1, method="complete")
+    Z1 = dendrogram(Y, orientation="left", color_threshold=0, above_threshold_color="k")
     ax1.set_xticks([])
     ax1.set_yticks([])
     # add top dendrogram
-    ax2 = fig.add_axes([left_w, main_h+gap_y, top_w, top_h-gap_y], frameon=False)
-    Y = linkage(D2, method='complete')
-    Z2 = dendrogram(Y, color_threshold=0, above_threshold_color='k')
+    ax2 = fig.add_axes([left_w, main_h + gap_y, top_w, top_h - gap_y], frameon=False)
+    Y = linkage(D2, method="complete")
+    Z2 = dendrogram(Y, color_threshold=0, above_threshold_color="k")
     ax2.set_xticks([])
     ax2.set_yticks([])
     # add matrix plot
     axmatrix = fig.add_axes([left_w, 0, main_w, main_h])
-    idx1 = Z1['leaves']
-    idx2 = Z2['leaves']
-    D = dm[idx1, :]
-    D = D[:, idx2]
+    idx1 = Z1["leaves"]
+    idx2 = Z2["leaves"]
 
-    if cmap is None: cmap='hot'
-    fig = axmatrix.matshow(D[::-1], aspect='auto', cmap=cmap,
-                           vmin=vmin, vmax=vmax)
+    if show == 'scaled':
+        D = dm[idx1, :]
+        D = D[:, idx2]
+    if show == 'original':
+        D = df_orig.iloc[idx1, :]
+        D = D.iloc[:, idx2].values  
+
+    if cmap is None:
+        cmap = "hot"
+    fig = axmatrix.matshow(D[::-1], aspect="auto", cmap=cmap, vmin=vmin, vmax=vmax)
 
     axmatrix.set_xticks([])
     axmatrix.set_yticks([])
-    
-    ax = plt.gca()
+
+    ax = pl.gca()
     ax.yaxis.tick_right()
     ax.xaxis.tick_bottom()
 
-    clustered = df.iloc[Z1['leaves'][::-1], Z2['leaves']]
+    clustered = df_orig.iloc[Z1["leaves"][::-1], Z2["leaves"]]
 
-    ndx_y = np.linspace(0,len(clustered.index)-1, ymaxticks)
-    ndx_x = np.linspace(0,len(clustered.columns)-1, xmaxticks)
+    ndx_y = np.linspace(0, len(clustered.index) - 1, ymaxticks)
+    ndx_x = np.linspace(0, len(clustered.columns) - 1, xmaxticks)
     ndx_y = [int(i) for i in ndx_y]
     ndx_x = [int(i) for i in ndx_x]
 
-    _ = plt.yticks(ndx_y, clustered.iloc[ndx_y].index)
-    _ = plt.xticks(ndx_x, clustered.columns[ndx_x], rotation=90)
+    _ = pl.yticks(ndx_y, clustered.iloc[ndx_y].index)
+    _ = pl.xticks(ndx_x, clustered.columns[ndx_x], rotation=90)
 
     return clustered, fig
 
-import missingno as msno
-import pandas as pd
-import numpy as np
-import xgboost as xgb
-import seaborn as sns
-
+def scale_dataframe(df, how='standard', **kwargs):
+    if how == 'standard': scaler = StandardScaler
+    elif how == 'robust': scaler = RobustScaler
+    df = df.copy()
+    df.loc[:,:] = scaler(**kwargs).fit_transform(df)
+    return df
 
 
 def plot_missing_values(df, kind="matrix"):
@@ -226,11 +261,22 @@ def sklearn_cv_classification(
     return loss_mean, loss_std, cv_predictions, predictions
 
 
-def sklearn_cv_binary_clf_roc(X, y, base_model, params={}, X_test=None, n_folds=5, 
-        seeds=None, to_numpy=False, metric=None, fit_kws=None, framework=None):
+def sklearn_cv_binary_clf_roc(
+    X,
+    y,
+    base_model,
+    params={},
+    X_test=None,
+    n_folds=5,
+    seeds=None,
+    to_numpy=False,
+    metric=None,
+    fit_kws=None,
+    framework=None,
+):
     """
-    sklearn model compatible binary classification procedure with 
-    probability estimatoin and ROC metric with cross-validation 
+    sklearn model compatible binary classification procedure with
+    probability estimatoin and ROC metric with cross-validation
     and multiple random seeds.
     """
     if seeds is None:
@@ -238,97 +284,124 @@ def sklearn_cv_binary_clf_roc(X, y, base_model, params={}, X_test=None, n_folds=
     losses = []
     predic = None
     cv_predictions = X[[]].copy()
-    cv_predictions['y'] = y
-    if metric is None: metric = roc_auc_score
-    if fit_kws is None: fit_kws = {}
-    n_models = len(seeds)*n_folds
-    if X_test is not None: 
+    cv_predictions["y"] = y
+    if metric is None:
+        metric = roc_auc_score
+    if fit_kws is None:
+        fit_kws = {}
+    n_models = len(seeds) * n_folds
+    if X_test is not None:
         predictions = X_test[[]].copy()
     else:
         predictions = None
-    for n_seed, seed in enumerate( seeds ):
-        print('+'*22+f' Seed {n_seed:2d} '+'+'*23)
+    for n_seed, seed in enumerate(seeds):
+        print("+" * 22 + f" Seed {n_seed:2d} " + "+" * 23)
         assert isinstance(seed, int)
-        params['seed'] = seed
+        params["seed"] = seed
         kfold = StratifiedKFold(n_splits=n_folds, random_state=seed, shuffle=True)
-        for n_fold, (ndx_train, ndx_valid) in enumerate( kfold.split(X, y) ):
-            print('='*22+f' Fold {n_fold:2d} '+'='*23)
+        for n_fold, (ndx_train, ndx_valid) in enumerate(kfold.split(X, y)):
+            print("=" * 22 + f" Fold {n_fold:2d} " + "=" * 23)
             _X_train, _X_valid = X.iloc[ndx_train], X.iloc[ndx_valid]
             _y_train, _y_valid = y.iloc[ndx_train], y.iloc[ndx_valid]
-            if to_numpy: _X_train, _X_valid, _y_train, _y_valid = \
-                _X_train.values, _X_valid.values, _y_train.values, _y_valid.values
+            if to_numpy:
+                _X_train, _X_valid, _y_train, _y_valid = (
+                    _X_train.values,
+                    _X_valid.values,
+                    _y_train.values,
+                    _y_valid.values,
+                )
             _model = base_model(**params)
-            if framework == 'lgbm':
-                fit_kws['eval_set'] = [(_X_train, _y_train), (_X_valid, _y_valid)]
-                fit_kws['eval_metric'] = 'auc'
-                fit_kws['eval_names'] = ['Train', 'Valid']
+            if framework == "lgbm":
+                fit_kws["eval_set"] = [(_X_train, _y_train), (_X_valid, _y_valid)]
+                fit_kws["eval_metric"] = "auc"
+                fit_kws["eval_names"] = ["Train", "Valid"]
             _model.fit(_X_train, _y_train, **fit_kws)
-            _pred = _model.predict_proba(_X_valid)[:,1]      
-            _loss = metric( _y_valid, _pred )            
-            print(f'Fold {n_fold}: {_loss:1.4f}')
-            cv_predictions.loc[ndx_valid, f'cv-pred-{n_seed}'] = _pred
-            losses.append( _loss )
+            _pred = _model.predict_proba(_X_valid)[:, 1]
+            _loss = metric(_y_valid, _pred)
+            print(f"Fold {n_fold}: {_loss:1.4f}")
+            cv_predictions.loc[ndx_valid, f"cv-pred-{n_seed}"] = _pred
+            losses.append(_loss)
             if X_test is not None:
-                _pred_test = _model.predict_proba(X_test.values)[:,1]
-                predictions[f'pred-s-{seed}'] = _pred_test
-    cv_predictions['cv-pred'] = cv_predictions.filter(regex='cv-pred').mean(axis=1)    
+                _pred_test = _model.predict_proba(X_test.values)[:, 1]
+                predictions[f"pred-s-{seed}"] = _pred_test
+    cv_predictions["cv-pred"] = cv_predictions.filter(regex="cv-pred").mean(axis=1)
     loss_mean = np.mean(losses)
     loss_std = np.std(losses)
-    cv_loss = metric(cv_predictions['y'].values, cv_predictions['cv-pred'].values)
-    if X_test is not None: 
-        predictions['pred'] =  predictions.filter(regex='pred').mean(axis=1)
-    print(f'Avg-CV: {loss_mean:1.4f}+/-{loss_std:1.4f}; Final-CV: {cv_loss:1.4f}')
+    cv_loss = metric(cv_predictions["y"].values, cv_predictions["cv-pred"].values)
+    if X_test is not None:
+        predictions["pred"] = predictions.filter(regex="pred").mean(axis=1)
+    print(f"Avg-CV: {loss_mean:1.4f}+/-{loss_std:1.4f}; Final-CV: {cv_loss:1.4f}")
     return loss_mean, loss_std, cv_predictions, predictions
 
 
-def tabnet_cv_classification(X, y, base_model, params={}, X_test=None, n_folds=5, 
-        seeds=None, to_numpy=False, fit_kws=None, metric=None):
-    if seeds is None: seeds = [1]
-    if fit_kws is None: fit_kws = {}
-    if metric is None: metric = roc_auc_score
+def tabnet_cv_classification(
+    X,
+    y,
+    base_model,
+    params={},
+    X_test=None,
+    n_folds=5,
+    seeds=None,
+    to_numpy=False,
+    fit_kws=None,
+    metric=None,
+):
+    if seeds is None:
+        seeds = [1]
+    if fit_kws is None:
+        fit_kws = {}
+    if metric is None:
+        metric = roc_auc_score
     losses = []
     predic = None
     cv_predictions = X[[]].copy()
-    cv_predictions['y'] = y
-    n_models = len(seeds)*n_folds
-    if X_test is not None: 
+    cv_predictions["y"] = y
+    n_models = len(seeds) * n_folds
+    if X_test is not None:
         predictions = X_test[[]].copy()
     else:
         predictions = None
     for n_seed, seed in enumerate(seeds):
         assert isinstance(seed, int)
-        print('+'*22+f' Seed {n_seed:2d} '+'+'*23)
-        params['seed'] = seed
+        print("+" * 22 + f" Seed {n_seed:2d} " + "+" * 23)
+        params["seed"] = seed
         kfold = StratifiedKFold(n_splits=n_folds, random_state=seed, shuffle=True)
-        for n_fold, (ndx_train, ndx_valid) in enumerate( kfold.split(X, y) ):
-            print('='*22+f' Fold {n_fold:2d} '+'='*23)
+        for n_fold, (ndx_train, ndx_valid) in enumerate(kfold.split(X, y)):
+            print("=" * 22 + f" Fold {n_fold:2d} " + "=" * 23)
             _X_train, _X_valid = X.iloc[ndx_train], X.iloc[ndx_valid]
             _y_train, _y_valid = y.iloc[ndx_train], y.iloc[ndx_valid]
-            if to_numpy: _X_train, _X_valid, _y_train, _y_valid = \
-                _X_train.values, _X_valid.values, _y_train.values, _y_valid.values
+            if to_numpy:
+                _X_train, _X_valid, _y_train, _y_valid = (
+                    _X_train.values,
+                    _X_valid.values,
+                    _y_train.values,
+                    _y_valid.values,
+                )
             _model = base_model(seed=seed)
-            _model.fit(_X_train, _y_train, 
-                       eval_set=[(_X_train, _y_train), (_X_valid, _y_valid)],  
-                       eval_name=['train', 'valid'],
-                       **fit_kws
-                       )
-            _pred = _model.predict_proba(_X_valid)[:,1]
-            _loss = metric( _y_valid, _pred )
-            cv_predictions.loc[ndx_valid, f'cv-pred-{n_seed}'] = _pred
-            print(f'Fold {n_fold}: {_loss}')
-            losses.append( _loss )
+            _model.fit(
+                _X_train,
+                _y_train,
+                eval_set=[(_X_train, _y_train), (_X_valid, _y_valid)],
+                eval_name=["train", "valid"],
+                **fit_kws,
+            )
+            _pred = _model.predict_proba(_X_valid)[:, 1]
+            _loss = metric(_y_valid, _pred)
+            cv_predictions.loc[ndx_valid, f"cv-pred-{n_seed}"] = _pred
+            print(f"Fold {n_fold}: {_loss}")
+            losses.append(_loss)
             if X_test is not None:
-                _pred_test = _model.predict_proba(X_test.values)[:,1]
-                predictions[f'pred-s-{seed}'] = _pred_test
+                _pred_test = _model.predict_proba(X_test.values)[:, 1]
+                predictions[f"pred-s-{seed}"] = _pred_test
             del _model
     loss_mean = np.mean(losses)
     loss_std = np.std(losses)
-    cv_predictions['cv-pred'] = cv_predictions.filter(regex='cv-pred').mean(axis=1)
-    cv_loss = metric(cv_predictions['y'].values, cv_predictions['cv-pred'].values)
+    cv_predictions["cv-pred"] = cv_predictions.filter(regex="cv-pred").mean(axis=1)
+    cv_loss = metric(cv_predictions["y"].values, cv_predictions["cv-pred"].values)
     cv_predictions = cv_predictions.astype(float)
-    if X_test is not None: 
-        predictions['pred'] =  predictions.filter(regex='pred').mean(axis=1)
-    print(f'Avg-CV: {loss_mean:1.4f}+/-{loss_std:1.4f}; Final-CV: {cv_loss:1.4f}')
+    if X_test is not None:
+        predictions["pred"] = predictions.filter(regex="pred").mean(axis=1)
+    print(f"Avg-CV: {loss_mean:1.4f}+/-{loss_std:1.4f}; Final-CV: {cv_loss:1.4f}")
     return loss_mean, loss_std, cv_predictions, predictions
 
 
