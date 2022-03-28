@@ -1,4 +1,3 @@
-
 import missingno as msno
 import pandas as pd
 import numpy as np
@@ -47,7 +46,7 @@ def hierarchical_clustering(
     df,
     vmin=None,
     vmax=None,
-    show='scaled',
+    show="scaled",
     figsize=(8, 8),
     top_height=2,
     left_width=2,
@@ -71,7 +70,7 @@ def hierarchical_clustering(
         if scaling_kws is None:
             scaling_kws = {}
         df = scale_dataframe(df, how=scaling, **scaling_kws)
-        
+
     # cm = pl.cm
     # cmap = cm.rainbow(np.linspace(0, 0, 1))
     # hierarchy.set_link_color_palette([mpl.colors.rgb2hex(rgb[:3]) for rgb in cmap])
@@ -123,12 +122,12 @@ def hierarchical_clustering(
     idx1 = Z1["leaves"]
     idx2 = Z2["leaves"]
 
-    if show == 'scaled':
+    if show == "scaled":
         D = dm[idx1, :]
         D = D[:, idx2]
-    if show == 'original':
+    if show == "original":
         D = df_orig.iloc[idx1, :]
-        D = D.iloc[:, idx2].values  
+        D = D.iloc[:, idx2].values
 
     if cmap is None:
         cmap = "hot"
@@ -153,11 +152,14 @@ def hierarchical_clustering(
 
     return clustered, fig
 
-def scale_dataframe(df, how='standard', **kwargs):
-    if how == 'standard': scaler = StandardScaler
-    elif how == 'robust': scaler = RobustScaler
+
+def scale_dataframe(df, how="standard", **kwargs):
+    if how == "standard":
+        scaler = StandardScaler
+    elif how == "robust":
+        scaler = RobustScaler
     df = df.copy()
-    df.loc[:,:] = scaler(**kwargs).fit_transform(df)
+    df.loc[:, :] = scaler(**kwargs).fit_transform(df)
     return df
 
 
