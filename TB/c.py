@@ -37,6 +37,7 @@ def log2p1(x):
     except:
         return x
 
+remove_digits = lambda x: ''.join([i for i in x if not i.isdigit()])
 
 # STOP
 
