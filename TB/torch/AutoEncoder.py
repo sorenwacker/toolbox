@@ -154,7 +154,10 @@ class AutoEncoder(nn.Module):
                 result = pd.DataFrame(
                     self.encoder(X_train.to(self.device)).detach().cpu().numpy(),
                     index=ndx,
-                ).add_prefix("AE-")
+                )
+                
+                result.columns = [c+1 for c in result.columns]
+                result = result.add_prefix("AE-")
                 result["Epoch"] = self._epoch
                 result["Labels"] = labels
                 self.snapshots.append(result)
@@ -178,7 +181,9 @@ class AutoEncoder(nn.Module):
             ndx = None
         X = torch.tensor(X).float().to(self.device)
         enc = self.encoder(X)
-        enc = pd.DataFrame(enc).add_prefix("AE-").astype(float)
+        enc = pd.DataFrame(enc)        
+        enc.columns = [c+1 for c in enc.columns]
+        enc = enc.add_prefix("AE-").astype(float)
         if ndx is not None:
             enc.index = ndx
         return enc
