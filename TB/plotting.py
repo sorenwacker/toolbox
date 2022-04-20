@@ -5,10 +5,8 @@ import matplotlib as mpl
 from sklearn.metrics import roc_curve, roc_auc_score
 from matplotlib import pyplot as pl
 
-from scipy.cluster.hierarchy import linkage, dendrogram, set_link_color_palette
-from scipy.spatial.distance import pdist, squareform
 from scipy.cluster import hierarchy
-from scipy.stats import norm
+
 
 from pathlib import Path as P
 
@@ -218,5 +216,30 @@ def savefig(name, notebook_name=None, fmt=["pdf", "png", "svg"], bbox_inches="ti
         print(f"Saved: {fn.resolve()}")
 
 
-# alias
-sf = savefig
+def plot_dendrogram(
+    df,
+    labels=None,
+    orientation="left",
+    metric=None,
+    color_threshold=0,
+    above_threshold_color="k",
+    **kwargs,
+):
+
+    Z = hierarchy.linkage(df, metric=metric)
+    T = hierarchy.to_tree(Z)
+    data = hierarchy.dendrogram(
+        Z,
+        labels=labels,
+        orientation=orientation,
+        color_threshold=color_threshold,
+        above_threshold_color=above_threshold_color,
+    )
+    ndx = data["leaves"]
+    if orientation in ["left", "right"]:
+        pl.xticks([])
+    if orientation in ["top", "bottom"]:
+        pl.xticks([])
+    pl.gca().set(frame_on=False)
+
+    return Z, T

@@ -43,6 +43,7 @@ REQUIRES = [
     "sklearn",
     "optuna",
     "matplotlib_venn",
+    "openpyxl",
 ]
 
 config = {
