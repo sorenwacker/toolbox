@@ -1,15 +1,20 @@
 import numpy as np
-from matplotlib_venn import venn3, venn2
+
+from matplotlib_venn import venn2_circles
+from matplotlib_venn import venn2
+from matplotlib_venn import venn3_circles
+from matplotlib_venn import venn3
 
 
-def venn_diagram(a, b, c=None, labels=None):
+def venn_diagram(a, b, c=None, labels=None, colors=None, **kwargs):
     if c is None:
-        return _venn_diagram2(a, b, set_labels=labels)
+        venn = _venn_diagram2(a, b, set_labels=labels, set_colors=colors, **kwargs)
     else:
-        return _venn_diagram3(a, b, c, set_labels=labels)
+        venn = _venn_diagram3(a, b, c, set_labels=labels, set_colors=colors, **kwargs)
+    return venn
 
 
-def _venn_diagram3(a, b, c, set_labels=None):
+def _venn_diagram3(a, b, c, **kwargs):
 
     a = list(set(a))
     b = list(set(b))
@@ -25,10 +30,17 @@ def _venn_diagram3(a, b, c, set_labels=None):
 
     a_b_c = len([x for x in a if (x in b) and (x in c)])
 
-    venn3(subsets=(only_a, only_b, a_b, only_c, a_c, b_c, a_b_c), set_labels=set_labels)
+    venn3(
+        subsets=(only_a, only_b, a_b - a_b_c, only_c, a_c - a_b_c, b_c - a_b_c, a_b_c),
+        **kwargs
+    )
+    venn3_circles(
+        subsets=(only_a, only_b, a_b - a_b_c, only_c, a_c - a_b_c, b_c - a_b_c, a_b_c),
+        linestyle="dashed", linewidth=1
+    )
 
 
-def _venn_diagram2(a, b, set_labels=None):
+def _venn_diagram2(a, b, **kwargs):
 
     a = list(set(a))
     b = list(set(b))
@@ -38,4 +50,6 @@ def _venn_diagram2(a, b, set_labels=None):
 
     a_b = len(np.intersect1d(a, b))
 
-    venn2(subsets=(only_a, only_b, a_b), set_labels=set_labels)
+    venn2(subsets=(only_a, only_b, a_b), **kwargs)
+    venn2_circles(subsets=(only_a, only_b, a_b),
+                  linestyle="dashed", linewidth=1)

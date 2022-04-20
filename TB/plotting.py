@@ -195,7 +195,7 @@ def legend_outside(ax=None, bbox_to_anchor=None, **kwargs):
     ax.legend(bbox_to_anchor=bbox_to_anchor, **kwargs)
 
 
-def savefig(name, notebook_name=None, fmt=["pdf", "png"], bbox_inches="tight", dpi=300):
+def savefig(name, notebook_name=None, fmt=["pdf", "png", "svg"], bbox_inches="tight", dpi=300):
     fig = pl.gcf()
     name = str(name)
 

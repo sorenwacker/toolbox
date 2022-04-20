@@ -1,4 +1,3 @@
-
 import missingno as msno
 import pandas as pd
 import numpy as np
@@ -47,7 +46,7 @@ def hierarchical_clustering(
     df,
     vmin=None,
     vmax=None,
-    show='scaled',
+    show="scaled",
     figsize=(8, 8),
     top_height=2,
     left_width=2,
@@ -71,7 +70,7 @@ def hierarchical_clustering(
         if scaling_kws is None:
             scaling_kws = {}
         df = scale_dataframe(df, how=scaling, **scaling_kws)
-        
+
     # cm = pl.cm
     # cmap = cm.rainbow(np.linspace(0, 0, 1))
     # hierarchy.set_link_color_palette([mpl.colors.rgb2hex(rgb[:3]) for rgb in cmap])
@@ -123,12 +122,12 @@ def hierarchical_clustering(
     idx1 = Z1["leaves"]
     idx2 = Z2["leaves"]
 
-    if show == 'scaled':
+    if show == "scaled":
         D = dm[idx1, :]
         D = D[:, idx2]
-    if show == 'original':
+    if show == "original":
         D = df_orig.iloc[idx1, :]
-        D = D.iloc[:, idx2].values  
+        D = D.iloc[:, idx2].values
 
     if cmap is None:
         cmap = "hot"
@@ -153,11 +152,14 @@ def hierarchical_clustering(
 
     return clustered, fig
 
-def scale_dataframe(df, how='standard', **kwargs):
-    if how == 'standard': scaler = StandardScaler
-    elif how == 'robust': scaler = RobustScaler
+
+def scale_dataframe(df, how="standard", **kwargs):
+    if how == "standard":
+        scaler = StandardScaler
+    elif how == "robust":
+        scaler = RobustScaler
     df = df.copy()
-    df.loc[:,:] = scaler(**kwargs).fit_transform(df)
+    df.loc[:, :] = scaler(**kwargs).fit_transform(df)
     return df
 
 
@@ -520,6 +522,47 @@ def pycaret_score_threshold_analysis(pycaret_prediction):
 
     title("Score theshold analysis")
 
+    
+class ShapAnalysis():
+    
+    def __init__(self, model, df):
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer(df)
+        self._shap_values = shap_values
+        self._instance_names = df.index.to_list()
+        self._feature_names = df.columns.to_list()
+        self.df_shap = pd.DataFrame(
+            shap_values.values, 
+            columns=df.columns, 
+            index=df.index
+        )
+        
+    def waterfall(self, i, **kwargs):
+        shap_values = self._shap_values
+        self._base_values = shap_values[i][0].base_values
+        self._values = shap_values[i].values
+        shap_object = shap.Explanation(
+                base_values = self._base_values, 
+                values = self._values,
+                feature_names = self._feature_names,
+                #instance_names = self._instance_names,
+                data = shap_values[i].data,
+        )
+        shap.plots.waterfall(shap_object, **kwargs)
+        
+    def summary(self, **kwargs):
+        shap.summary_plot(self._shap_values, **kwargs)
+        
+    def bar(self, **kwargs):
+        shap.plots.bar(self._shap_values, **kwargs)    
+        for ax in plt.gcf().axes:
+            for ch in ax.get_children():
+                try:
+                    ch.set_color("0.3")
+                except:
+                    break    
+    
+    
 
 # STOP
 
