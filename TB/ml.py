@@ -14,6 +14,7 @@ from sklearn.model_selection import (
     train_test_split,
     KFold,
     StratifiedKFold,
+    GroupKFold,
     cross_val_predict,
     cross_val_score,
 )
