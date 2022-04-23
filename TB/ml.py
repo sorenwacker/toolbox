@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import xgboost as xgb
 import seaborn as sns
+import shap
+
 
 from sklearn.ensemble import (
     RandomForestClassifier,
@@ -524,44 +526,47 @@ def pycaret_score_threshold_analysis(pycaret_prediction):
     title("Score theshold analysis")
 
     
+    
 class ShapAnalysis():
     
     def __init__(self, model, df):
         explainer = shap.TreeExplainer(model)
-        shap_values = explainer(df)
-        self._shap_values = shap_values
-        self._instance_names = df.index.to_list()
-        self._feature_names = df.columns.to_list()
-        self.df_shap = pd.DataFrame(
-            shap_values.values, 
-            columns=df.columns, 
-            index=df.index
-        )
+        shap_values = explainer.shap_values(df)
+        self.df = df
+        self.shap_values = shap_values
+        self.instance_names = df.index.to_list()
+        self.feature_names = df.columns.to_list()
+        #
+        #self.df_shap = pd.DataFrame(
+        #    shap_values.values, 
+        #    columns=df.columns, 
+        #    index=df.index
+        #)
         
     def waterfall(self, i, **kwargs):
-        shap_values = self._shap_values
+        shap_values = self.shap_values
         self._base_values = shap_values[i][0].base_values
         self._values = shap_values[i].values
         shap_object = shap.Explanation(
                 base_values = self._base_values, 
                 values = self._values,
-                feature_names = self._feature_names,
+                feature_names = self.feature_names,
                 #instance_names = self._instance_names,
                 data = shap_values[i].data,
         )
         shap.plots.waterfall(shap_object, **kwargs)
         
-    def summary(self, **kwargs):
-        shap.summary_plot(self._shap_values, **kwargs)
+    def summary(self, df=None, **kwargs):
+        shap.summary_plot(self.shap_values, df if df is not None else self.df, **kwargs)
         
     def bar(self, **kwargs):
-        shap.plots.bar(self._shap_values, **kwargs)    
+        shap.plots.bar(self.shap_values, **kwargs)    
         for ax in plt.gcf().axes:
             for ch in ax.get_children():
                 try:
                     ch.set_color("0.3")
                 except:
-                    break    
+                    break     
     
     
 
