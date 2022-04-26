@@ -44,6 +44,7 @@ REQUIRES = [
     "optuna",
     "matplotlib_venn",
     "openpyxl",
+    "tabulate",
 ]
 
 config = {
