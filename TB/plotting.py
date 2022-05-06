@@ -6,7 +6,7 @@ from sklearn.metrics import roc_curve, roc_auc_score
 from matplotlib import pyplot as pl
 
 from scipy.cluster import hierarchy
-
+from scipy.stats import norm
 
 from pathlib import Path as P
 

@@ -26,6 +26,8 @@ plt.rcParams["figure.dpi"] = 150
 pd.options.display.max_colwidth = 100
 pd.options.display.max_columns = 100
 
+sns.set_context('paper')
+sns.set_style('darkgrid')
 
 def today():
     return date.today().strftime("%y%m%d")
