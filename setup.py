@@ -45,6 +45,7 @@ REQUIRES = [
     "matplotlib_venn",
     "openpyxl",
     "tabulate",
+    "plotly"
 ]
 
 config = {
