@@ -12,6 +12,7 @@ from pathlib import Path as P
 from tqdm.notebook import tqdm
 
 import seaborn as sns
+import plotly.express as px
 
 from matplotlib import pyplot as plt
 import matplotlib as mpl
