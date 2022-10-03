@@ -45,6 +45,11 @@ REQUIRES = [
     "matplotlib_venn",
     "openpyxl",
     "tabulate",
+    "plotly",
+    "psycopg2-binary",
+    "plotly",
+    "black",
+    "pytest"
 ]
 
 config = {
