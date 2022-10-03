@@ -46,7 +46,10 @@ REQUIRES = [
     "openpyxl",
     "tabulate",
     "plotly",
-    "psycopg2",
+    "psycopg2-binary",
+    "plotly",
+    "black",
+    "pytest"
 ]
 
 config = {
