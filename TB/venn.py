@@ -36,7 +36,8 @@ def _venn_diagram3(a, b, c, **kwargs):
     )
     venn3_circles(
         subsets=(only_a, only_b, a_b - a_b_c, only_c, a_c - a_b_c, b_c - a_b_c, a_b_c),
-        linestyle="dashed", linewidth=1
+        linestyle="dashed",
+        linewidth=1,
     )
 
 
@@ -51,5 +52,4 @@ def _venn_diagram2(a, b, **kwargs):
     a_b = len(np.intersect1d(a, b))
 
     venn2(subsets=(only_a, only_b, a_b), **kwargs)
-    venn2_circles(subsets=(only_a, only_b, a_b),
-                  linestyle="dashed", linewidth=1)
+    venn2_circles(subsets=(only_a, only_b, a_b), linestyle="dashed", linewidth=1)

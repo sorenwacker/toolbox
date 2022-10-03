@@ -17,7 +17,7 @@ def col_to_class(df, col_name, possible_values=None, delete_col=True):
 
 def reduce_mem_usage(df, verbose=True):
     numerics = ["int16", "int32", "int64", "float16", "float32", "float64"]
-    start_mem = df.memory_usage().sum() / 1024 ** 2
+    start_mem = df.memory_usage().sum() / 1024**2
     for col in df.columns:
         col_type = df[col].dtypes
         if col_type in numerics:
@@ -45,7 +45,7 @@ def reduce_mem_usage(df, verbose=True):
                     df[col] = df[col].astype(np.float32)
                 else:
                     df[col] = df[col].astype(np.float64)
-    end_mem = df.memory_usage().sum() / 1024 ** 2
+    end_mem = df.memory_usage().sum() / 1024**2
     if verbose:
         print(
             "Mem. usage decreased to {:5.2f} Mb ({:.1f}% reduction)".format(
