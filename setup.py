@@ -49,7 +49,9 @@ REQUIRES = [
     "psycopg2-binary",
     "plotly",
     "black",
-    "pytest"
+    "pytest",
+    "plotnine",
+    "scikit-misc"
 ]
 
 config = {
