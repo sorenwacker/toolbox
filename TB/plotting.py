@@ -101,7 +101,14 @@ def plot_hlines(hlines=None, ax=None, color=None, **kwargs):
         if not isinstance(hlines, list):
             hlines = [hlines]
         for hline in hlines:
-            pl.hlines(hline, x0 - 0.2, x1 + 1.2, color=color, label=label if i==0 else None, **kwargs)
+            pl.hlines(
+                hline,
+                x0 - 0.2,
+                x1 + 1.2,
+                color=color,
+                label=label if i == 0 else None,
+                **kwargs,
+            )
     pl.xlim((x0, x1))
     pl.ylim((y0, y1))
 
@@ -113,7 +120,14 @@ def plot_vlines(vlines=None, ax=None, color=None, label=None, **kwargs):
         if not isinstance(vlines, list):
             vlines = [vlines]
         for i, vline in enumerate(vlines):
-            pl.vlines(vline, y0 - 0.2, y1 + 1.2, color=color, label=label if i==0 else None, **kwargs)
+            pl.vlines(
+                vline,
+                y0 - 0.2,
+                y1 + 1.2,
+                color=color,
+                label=label if i == 0 else None,
+                **kwargs,
+            )
     pl.xlim((x0, x1))
     pl.ylim((y0, y1))
 

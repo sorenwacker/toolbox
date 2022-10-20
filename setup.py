@@ -51,7 +51,8 @@ REQUIRES = [
     "black",
     "pytest",
     "plotnine",
-    "scikit-misc"
+    "scikit-misc",
+    "adjustText",
 ]
 
 config = {

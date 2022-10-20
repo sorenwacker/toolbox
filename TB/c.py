@@ -40,7 +40,7 @@ pd.options.display.max_colwidth = 100
 pd.options.display.max_columns = 100
 
 sns.set_context("paper")
-sns.set_style("darkgrid")
+sns.set_style("white")
 
 
 def today():
@@ -64,5 +64,5 @@ with open(__file__, "r") as this_file:
         if re.search("STOP", line):
             break
         print(line, end="")
-
-logging.info(os.getcwd())
+    print(f"# Current working directory: {os.getcwd()}")
+    print(f"# Current date: {today()}")
