@@ -32,7 +32,6 @@ class Vulcano:
 
         self.group_labels = self.get_group_labels(labels)
         label_0, label_1 = self.group_labels
-        print("labels:", label_0, label_1)
 
         data["labels"] = labels
 
@@ -82,7 +81,7 @@ class Vulcano:
         return self.test_func(values_0, values_1).pvalue
 
     def calculate_fold_change(self, values_0, values_1):
-        return np.mean(values_0) / np.mean(values_1)
+        return np.mean(values_1) / np.mean(values_0)
 
     def plot_interactive(self, height=750, width=750):
         results = self.results
