@@ -1,4 +1,24 @@
 import numpy as np
+from sklearn.preprocessing import StandardScaler, RobustScaler
+
+
+def scale_dataframe(df, scaler="standard", **kwargs):
+    """
+    Scale all columns in a dense dataframe.
+    :param df: Dataframe to scale
+    :type df: pandas.DataFrame
+    :param scaler: Scaler to use ['robust', 'standard'], defaults to "standard"
+    :type scaler: str, optional
+    :return: Scaled dataframe
+    :rtype: pandas.DataFrame
+    """
+    df = df.copy()
+    if scaler == "standard":
+        scaler = StandardScaler(**kwargs)
+    elif scaler == "robust":
+        scaler = RobustScaler(**kwargs)
+    df.loc[:, :] = scaler.fit_transform(df)
+    return df
 
 
 def col_to_class(df, col_name, possible_values=None, delete_col=True):
