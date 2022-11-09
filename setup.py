@@ -44,6 +44,15 @@ REQUIRES = [
     "optuna",
     "matplotlib_venn",
     "openpyxl",
+    "tabulate",
+    "plotly",
+    "psycopg2-binary",
+    "plotly",
+    "black",
+    "pytest",
+    "plotnine",
+    "scikit-misc",
+    "adjustText",
 ]
 
 config = {
