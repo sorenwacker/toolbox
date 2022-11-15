@@ -53,6 +53,7 @@ REQUIRES = [
     "plotnine",
     "scikit-misc",
     "adjustText",
+    "jedi==0.17.2"
 ]
 
 config = {
