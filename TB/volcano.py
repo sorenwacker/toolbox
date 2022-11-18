@@ -12,7 +12,8 @@ from adjustText import adjust_text
 
 
 
-class Vulcano:
+class Volcano:
+    
     def __init__(self, test_func=None):
         if test_func is None:
             self.test_func = f_oneway
@@ -83,32 +84,47 @@ class Vulcano:
     def calculate_fold_change(self, values_0, values_1):
         return np.mean(values_1) / np.mean(values_0)
 
-    def plot_interactive(self, height=750, width=750):
-        results = self.results
+    def plot_interactive(self, minfoldchange=1, highlight=None, height=750, width=750):
+        x = "log2(fold-change)"
+        y = "-log10(p-value)"      
+        
+        results = self.results.copy()
+        
+        results['color'] = 'a'
+        
+        results.loc[results.Significant & (results[x]> minfoldchange), 'color' ] = 'b'
+        results.loc[results.Significant & (results[x]<-minfoldchange), 'color' ] = 'c'
+        
         fig = px.scatter(
             data_frame=results,
-            y="-log10(p-value)",
-            x="log2(fold-change)",
+            y=y,
+            x=x,
             hover_data=["Feature", "p-value", "fold-change"],
             height=height,
             width=width,
-            color="Significant",
+            color="color",
         )
+        
         fig.update_traces(
             marker=dict(size=12, line=dict(width=2, color="DarkSlateGrey")),
             selector=dict(mode="markers"),
         )
+        
         fig.add_hline(
             y=-np.log10(self.significance_threshold), line_width=0.5, line_dash="dash"
         )
-        fig.add_vline(x=0, line_width=0.5, line_dash="dash")
+        
+        fig.add_vline(x= minfoldchange, line_width=0.5, line_dash="dash")
+        fig.add_vline(x=-minfoldchange, line_width=0.5, line_dash="dash")
 
-        sig = self.results[self.results.Significant]
+        sig = self.results[ (self.results.Significant) 
+                            & (results[x].abs()>minfoldchange) 
+                          ]
 
         fig.add_trace(
             go.Scatter(
-                x=sig["log2(fold-change)"],
-                y=sig["-log10(p-value)"],
+                x=sig[x],
+                y=sig[y],
                 mode="text",
                 text=sig.Feature,
                 name="Feature",
@@ -120,12 +136,12 @@ class Vulcano:
             go.Scatter(
                 x=np.array(
                     [
-                        results["log2(fold-change)"].min(),
-                        results["log2(fold-change)"].max(),
+                        results[x].min(),
+                        results[x].max(),
                     ]
                 ),
                 y=np.array(
-                    [results["-log10(p-value)"].max(), results["-log10(p-value)"].max()]
+                    [results[y].max(), results[y].max()]
                 )
                 * 1.1,
                 mode="text",
@@ -138,9 +154,11 @@ class Vulcano:
             )
         )
 
+        fig.update_layout(showlegend=False)
+
         return fig
 
-    def plot(self, minfoldchange=1, nmaxannot=None, legend=False, **kwargs):
+    def plot(self, minfoldchange=1, nmaxannot=5, legend=False, highlight=None, **kwargs):
 
         x = "log2(fold-change)"
         y = "-log10(p-value)"
@@ -167,8 +185,8 @@ class Vulcano:
         halign = ["left", "right"]
 
         ax = plt.gca()
+        
         # Add group labels
-
         for i in [0, 1]:
             text = plt.text(
                 x_groups[i],
@@ -178,22 +196,28 @@ class Vulcano:
                 horizontalalignment=halign[i],
                 transform=ax.transAxes,
                 backgroundcolor="0.3",
-                bbox=dict(facecolor="none", edgecolor="0.3", boxstyle="round, pad=0.2"),
+                bbox=dict(facecolor="none", 
+                          edgecolor="0.3", 
+                          boxstyle="round, pad=0.2"),
             )
 
-        sig = results[results.Significant].sort_values("p-value")
-
-        if nmaxannot is not None:
-            sig = sig.head(nmaxannot)
-
-        # Add labels
+            
+        if highlight is None:
+          annot = results[(results.Significant) & (results[x].abs()>minfoldchange)].sort_values("p-value")
+          if nmaxannot is not None:
+            annot = annot.head(nmaxannot)
+        else:
+          annot = results[results.Feature.isin(highlight)]
+                
+        # Add metabolite labels
         texts = []
-        for ndx, row in sig.iterrows():
+        for ndx, row in annot.iterrows():
             x_value = row[x]
             y_value = row[y]
             _text = row["Feature"]
-            if np.abs(row["log2(fold-change)"]) < minfoldchange:
-                continue
+            
+            if highlight is not None:
+              plt.plot(x_value, y_value, mfc='none', mew=1, mec='cyan', marker='o')
             text = plt.text(
                 x_value, y_value, _text, color="black", horizontalalignment="center"
             )
@@ -202,6 +226,7 @@ class Vulcano:
         adjust_text(texts, arrowprops=dict(arrowstyle="->", color="k", lw=0.5))
 
         sns.despine()
+        return plt.gcf()
 
 
 def _get_color_(sig, log_fc, minfoldchange=1):

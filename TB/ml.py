@@ -565,19 +565,3 @@ class ShapAnalysis:
                     ch.set_color("0.3")
                 except:
                     break
-
-
-# STOP
-
-import re
-
-with open(__file__, "r") as this_file:
-    for line in this_file.readlines():
-        if re.search("STOP", line):
-            break
-        print(line, end="")
-
-try:
-    from .torch import *
-except:
-    pass
