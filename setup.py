@@ -55,7 +55,8 @@ REQUIRES = [
     "adjustText",
     "jedi==0.17.2",
     "aiohttp",
-    "requests"
+    "requests",
+    "beautifulsoup4"
 ]
 
 config = {
