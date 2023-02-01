@@ -53,6 +53,10 @@ REQUIRES = [
     "plotnine",
     "scikit-misc",
     "adjustText",
+    "jedi==0.17.2",
+    "aiohttp",
+    "requests",
+    "beautifulsoup4"
 ]
 
 config = {
