@@ -480,7 +480,7 @@ def remove_features_with_anti_target(
     return pd.DataFrame(history)
 
 
-def quick_pca(df, n_components=None, labels=None, plot=True, scale=True, **plot_kws):
+def quick_pca(df, n_components=2, labels=None, plot=True, scale=True, **plot_kws):
     df = df.copy()
     if scale:
         scaler = StandardScaler()

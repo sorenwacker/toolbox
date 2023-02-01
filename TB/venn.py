@@ -7,6 +7,8 @@ from matplotlib_venn import venn3
 
 
 def venn_diagram(a, b, c=None, labels=None, colors=None, **kwargs):
+    if colors is None:
+        colors = ['r', 'y', 'b']
     if c is None:
         venn = _venn_diagram2(a, b, set_labels=labels, set_colors=colors, **kwargs)
     else:
