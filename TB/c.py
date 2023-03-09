@@ -6,6 +6,14 @@ import logging
 import pandas as pd
 import numpy as np
 
+import matplotlib
+
+from matplotlib import pylab, mlab
+from matplotlib import pyplot as plt
+import matplotlib as mpl
+
+from IPython.core.pylabtools import figsize, getfigs
+
 from datetime import date
 from os.path import isdir, isfile, basename, dirname, join
 from time import sleep
@@ -13,11 +21,10 @@ from glob import glob
 from pathlib import Path as P
 from tqdm.notebook import tqdm
 
-import seaborn as sns
-import plotly.express as px
+from pylab import *
+from numpy import *
 
-from matplotlib import pyplot as plt
-import matplotlib as mpl
+import seaborn as sns
 import plotly.express as px
 
 from .plotting import savefig as sf
@@ -53,7 +60,14 @@ def log2p1(x):
     except:
         return x
 
+    
+def log10p1(x):
+    try:
+        return np.log10(x + 1)
+    except:
+        return x
 
+    
 remove_digits = lambda x: "".join([i for i in x if not i.isdigit()])
 
 # STOP

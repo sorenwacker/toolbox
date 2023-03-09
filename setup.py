@@ -40,7 +40,7 @@ REQUIRES = [
     "pyteomics",
     "lxml",
     "ipywidgets",
-    "sklearn",
+    "scikit-learn",
     "optuna",
     "matplotlib_venn",
     "openpyxl",
@@ -56,7 +56,10 @@ REQUIRES = [
     "jedi==0.17.2",
     "aiohttp",
     "requests",
-    "beautifulsoup4"
+    "beautifulsoup4",
+    "xgboost",
+    "shap",
+    "nbformat"
 ]
 
 config = {

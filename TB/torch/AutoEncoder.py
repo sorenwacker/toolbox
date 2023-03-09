@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import seaborn as sns
+import plotly.express as px
 
 import torch
 from torch import nn
@@ -160,6 +161,7 @@ class AutoEncoder(nn.Module):
                 result = result.add_prefix("AE-")
                 result["Epoch"] = self._epoch
                 result["Labels"] = labels
+                result.index = ndx
                 self.snapshots.append(result)
                 if self.show_plots:
                     sns.relplot(
@@ -187,3 +189,10 @@ class AutoEncoder(nn.Module):
         if ndx is not None:
             enc.index = ndx
         return enc
+    
+    def plot(self, **kwargs):
+        sn = pd.concat(self.snapshots).reset_index()
+        display(sn)
+        fig = px.scatter(sn, x='AE-1', y='AE-2', animation_frame='Epoch', **kwargs)
+        fig.update_layout(xaxis_range=[0,1], yaxis_range=[0,1])
+        return fig

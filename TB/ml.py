@@ -30,7 +30,7 @@ from sklearn.preprocessing import (
 from sklearn.metrics import (
     balanced_accuracy_score,
     confusion_matrix,
-    plot_confusion_matrix,
+    #plot_confusion_matrix,
     mean_squared_error,
 )
 from sklearn.decomposition import PCA
@@ -480,21 +480,27 @@ def remove_features_with_anti_target(
     return pd.DataFrame(history)
 
 
-def quick_pca(df, n_components=2, labels=None, plot=True, scale=True, **plot_kws):
+def quick_pca(df, n_components=2, labels=None, plot=True, scale=True, interactive=False, **plot_kws):
+    g = None
     df = df.copy()
     if scale:
         scaler = StandardScaler()
         df.loc[:, :] = scaler.fit_transform(df)
     pca = PCA(n_components)
-    res = pd.DataFrame(pca.fit_transform(df))
-    res.columns = res.columns.values + 1
-    res = res.add_prefix("PC-")
+    proj = pd.DataFrame(pca.fit_transform(df))
+    proj.columns = proj.columns.values + 1
+    proj = proj.add_prefix("PC-")
+    proj.index = df.index
     if labels is not None:
-        res["label"] = list(labels)
+        proj["label"] = list(labels)
     if plot:
-        sns.pairplot(res, hue="label" if labels is not None else None, **plot_kws)
-    res.index = df.index
-    return res
+        if not interactive:
+            fig = sns.pairplot(proj, hue="label" if labels is not None else None, **plot_kws)
+        else:
+            pc_cols = proj.filter(regex='PC').columns.to_list()
+            ndx_names = list(proj.index.names)
+            fig = px.scatter_matrix(proj.reset_index(), color="label" if labels is not None else None, dimensions=pc_cols, hover_data=ndx_names, **plot_kws)
+    return proj, fig
 
 
 def pycaret_score_threshold_analysis(pycaret_prediction):

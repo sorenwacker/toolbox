@@ -3,12 +3,30 @@ import seaborn as sns
 import matplotlib as mpl
 
 from sklearn.metrics import roc_curve, roc_auc_score
-from matplotlib import pyplot as pl
+from matplotlib import pyplot as plt
 
 from scipy.cluster import hierarchy
 from scipy.stats import norm
 
 from pathlib import Path as P
+
+from adjustText import adjust_text
+
+
+
+def labeled_scatterplot(df, x, y, label, **kwargs):
+    sns.scatterplot(x=df[x], y=df[y], **kwargs)
+    texts = []
+    for ndx, row in df.iterrows():
+            x_value = row[x]
+            y_value = row[y]
+            _text = row[label]
+            text = plt.text(
+                x_value, y_value, _text, color="black", horizontalalignment="center"
+            )
+            texts.append(text)
+    adjust_text(texts, arrowprops=dict(arrowstyle="->", color="k", lw=0.5))
+    return plt.gcf()
 
 
 def plot_roc(
@@ -28,9 +46,9 @@ def plot_roc(
         target = classify(target, cutoff_target)
     fpr, tpr, _ = roc_curve(target, score, pos_label=pos_label)
     auc = roc_auc_score(target, score)
-    pl.plot(fpr, tpr, **kwargs)
+    plt.plot(fpr, tpr, **kwargs)
     if add_text:
-        pl.text(0.75, 0.04, f"AUC={auc:4.2f}", size=8)
+        plt.text(0.75, 0.04, f"AUC={auc:4.2f}", size=8)
     if estimate_random:
         plot_random_roc(target, 200, ax=ax)
     _plot_roc_defaults_(set_tick_labels=set_tick_labels, ax=ax)
@@ -55,22 +73,22 @@ classify = np.vectorize(_classify)
 def _plot_roc_defaults_(set_tick_labels=True, ax=None, roc_percent=True):
     ax = _activate_axis_(ax)
     if set_tick_labels is False:
-        pl.gca().set_yticklabels([])
-        pl.gca().set_xticklabels([])
+        plt.gca().set_yticklabels([])
+        plt.gca().set_xticklabels([])
     else:
         if roc_percent:
-            pl.xticks([0.2, 0.4, 0.6, 0.8], [20, 40, 60, 80])
-            pl.yticks([0.2, 0.4, 0.6, 0.8], [20, 40, 60, 80])
-            pl.xlabel("False Positive [%]")
-            pl.ylabel("True Positive [%]")
+            plt.xticks([0.2, 0.4, 0.6, 0.8], [20, 40, 60, 80])
+            plt.yticks([0.2, 0.4, 0.6, 0.8], [20, 40, 60, 80])
+            plt.xlabel("False Positive [%]")
+            plt.ylabel("True Positive [%]")
         else:
-            pl.xticks([0.2, 0.4, 0.6, 0.8])
-            pl.yticks([0.2, 0.4, 0.6, 0.8])
-            pl.xlabel("False Positive Rate")
-            pl.ylabel("True Positive Rate")
+            plt.xticks([0.2, 0.4, 0.6, 0.8])
+            plt.yticks([0.2, 0.4, 0.6, 0.8])
+            plt.xlabel("False Positive Rate")
+            plt.ylabel("True Positive Rate")
 
-    pl.xlim((0, 1))
-    pl.ylim((0, 1))
+    plt.xlim((0, 1))
+    plt.ylim((0, 1))
     plot_diagonal(linestyle="--", color="w")
     return ax
 
@@ -78,20 +96,20 @@ def _plot_roc_defaults_(set_tick_labels=True, ax=None, roc_percent=True):
 def plot_random_roc(labels, N, ax=None):
     ax = _activate_axis_(ax)
     for i in range(N):
-        pl.plot(*_random_roc_(labels), alpha=0.01, linewidth=10, color="k", zorder=0)
+        plt.plot(*_random_roc_(labels), alpha=0.01, linewidth=10, color="k", zorder=0)
     return ax
 
 
 def plot_diagonal(ax=None, **kwargs):
     ax = _activate_axis_(ax)
     x0, x1, y0, y1 = _axis_dimensions_(ax)
-    pl.plot(
+    plt.plot(
         [np.min([x0, y0]), np.min([x1, y1])],
         [np.min([x0, y0]), np.min([x1, y1])],
         **kwargs,
     )
-    pl.xlim((x0, x1))
-    pl.ylim((y0, y1))
+    plt.xlim((x0, x1))
+    plt.ylim((y0, y1))
 
 
 def plot_hlines(hlines=None, ax=None, color=None, **kwargs):
@@ -101,7 +119,7 @@ def plot_hlines(hlines=None, ax=None, color=None, **kwargs):
         if not isinstance(hlines, list):
             hlines = [hlines]
         for hline in hlines:
-            pl.hlines(
+            plt.hlines(
                 hline,
                 x0 - 0.2,
                 x1 + 1.2,
@@ -109,8 +127,8 @@ def plot_hlines(hlines=None, ax=None, color=None, **kwargs):
                 label=label if i == 0 else None,
                 **kwargs,
             )
-    pl.xlim((x0, x1))
-    pl.ylim((y0, y1))
+    plt.xlim((x0, x1))
+    plt.ylim((y0, y1))
 
 
 def plot_vlines(vlines=None, ax=None, color=None, label=None, **kwargs):
@@ -120,7 +138,7 @@ def plot_vlines(vlines=None, ax=None, color=None, label=None, **kwargs):
         if not isinstance(vlines, list):
             vlines = [vlines]
         for i, vline in enumerate(vlines):
-            pl.vlines(
+            plt.vlines(
                 vline,
                 y0 - 0.2,
                 y1 + 1.2,
@@ -128,8 +146,8 @@ def plot_vlines(vlines=None, ax=None, color=None, label=None, **kwargs):
                 label=label if i == 0 else None,
                 **kwargs,
             )
-    pl.xlim((x0, x1))
-    pl.ylim((y0, y1))
+    plt.xlim((x0, x1))
+    plt.ylim((y0, y1))
 
 
 def _random_roc_(y_train, ax=None):
@@ -143,8 +161,8 @@ def _random_roc_(y_train, ax=None):
 
 def _activate_axis_(ax=None):
     if ax is not None:
-        pl.sca(ax)
-    return pl.gca()
+        plt.sca(ax)
+    return plt.gca()
 
 
 def _axis_dimensions_(ax=None):
@@ -166,7 +184,7 @@ def heatmap(dm, vmin=0, vmax=1):
 
     D1 = squareform(pdist(dm, metric="euclidean"))
     D2 = squareform(pdist(dm.T, metric="euclidean"))
-    f = pl.figure(figsize=(8, 8))
+    f = plt.figure(figsize=(8, 8))
     # add first dendrogram
     ax1 = f.add_axes([0.09, 0.1, 0.2, 0.6])
     Y = linkage(D1, method="complete")
@@ -188,7 +206,7 @@ def heatmap(dm, vmin=0, vmax=1):
     axmatrix.matshow(D[::-1], aspect="auto", cmap="hot", vmin=vmin, vmax=vmax)
     axmatrix.set_xticks([])
     axmatrix.set_yticks([])
-    # cbar=pl.colorbar(im,shrink=0.77,ticks=np.linspace(vmin,vmax,3))
+    # cbar=plt.colorbar(im,shrink=0.77,ticks=np.linspace(vmin,vmax,3))
     return {"ordered": D, "rorder": Z1["leaves"], "corder": Z2["leaves"]}
 
 
@@ -201,7 +219,7 @@ def legend_outside(ax=None, bbox_to_anchor=None, **kwargs):
         default: (1, 1.05)
     """
     if ax is None:
-        ax = pl.gca()
+        ax = plt.gca()
     if bbox_to_anchor is None:
         bbox_to_anchor = (1, 1.05)
     ax.legend(bbox_to_anchor=bbox_to_anchor, **kwargs)
@@ -210,7 +228,7 @@ def legend_outside(ax=None, bbox_to_anchor=None, **kwargs):
 def savefig(
     name, notebook_name=None, fmt=["pdf", "png", "svg"], bbox_inches="tight", dpi=300
 ):
-    fig = pl.gcf()
+    fig = plt.gcf()
     name = str(name)
 
     output = P("output")
@@ -253,9 +271,9 @@ def plot_dendrogram(
     )
     ndx = data["leaves"]
     if orientation in ["left", "right"]:
-        pl.xticks([])
+        plt.xticks([])
     if orientation in ["top", "bottom"]:
-        pl.xticks([])
-    pl.gca().set(frame_on=False)
+        plt.xticks([])
+    plt.gca().set(frame_on=False)
 
     return Z, T
