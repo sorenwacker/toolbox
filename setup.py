@@ -42,7 +42,7 @@ REQUIRES = [
     "ipywidgets",
     "scikit-learn",
     "optuna",
-    "matplotlib_venn",
+#    "matplotlib_venn",
     "openpyxl",
     "tabulate",
     "plotly",
