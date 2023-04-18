@@ -572,3 +572,9 @@ class ShapAnalysis:
                     ch.set_color("0.3")
                 except:
                     break
+
+                    
+                    
+                    
+class DurginScaler():
+    

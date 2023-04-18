@@ -59,7 +59,8 @@ REQUIRES = [
     "beautifulsoup4",
     "xgboost",
     "shap",
-    "nbformat"
+    "nbformat",
+    "SciencePlots"
 ]
 
 config = {
