@@ -189,9 +189,17 @@ if __name__ == "__main__":
     directory_mapper = DirectoryMapper(args.directory)
     summary_df, unit = directory_mapper.get_summary(args.unit)
     summary_df = summary_df.round(3)
-    sort_by_column = f"{args.sort_by} [{unit}]"
-    summary_df = summary_df.sort_values(by=sort_by_column, ascending=False)
     
+    if args.sort_by in ['Extension', 'Count']:
+        sort_by_column = args.sort_by
+    else:
+        sort_by_column = f"{args.sort_by} [{unit}]"
+    
+    if sort_by_column in summary_df.columns:
+        summary_df = summary_df.sort_values(by=sort_by_column, ascending=False)
+    else:
+        logger.warning(f"Sort by column '{sort_by_column}' not found in the DataFrame. Skipping sorting.")
+
     if args.output:
         save_summary(summary_df, args.output)
         print(f"Summary saved to {args.output}")
