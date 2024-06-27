@@ -54,30 +54,30 @@ class DirectoryMapper:
         return ''
 
     @staticmethod
-    def get_best_unit(size_in_bytes: float) -> tuple:
+    def get_conversion_factor(unit: str) -> int:
         """
-        Determine the best unit for displaying sizes.
+        Get the conversion factor for the specified unit.
         
         Args:
-            size_in_bytes (float): Size in bytes.
+            unit (str): The unit to convert to.
         
         Returns:
-            tuple: Unit name and conversion factor.
+            int: The conversion factor.
         """
-        if size_in_bytes < 1024:
-            return 'B', 1
-        elif size_in_bytes < 1024 ** 2:
-            return 'KiB', 1024
-        elif size_in_bytes < 1024 ** 3:
-            return 'MiB', 1024 ** 2
-        elif size_in_bytes < 1024 ** 4:
-            return 'GiB', 1024 ** 3
-        else:
-            return 'TiB', 1024 ** 4
+        unit_factors = {
+            'KiB': 1024,
+            'MiB': 1024 ** 2,
+            'GiB': 1024 ** 3,
+            'TiB': 1024 ** 4
+        }
+        return unit_factors.get(unit, 1024 ** 3)  # Default to GiB if unit is not recognized
 
-    def summarize_file_info(self) -> pd.DataFrame:
+    def summarize_file_info(self, unit: str) -> pd.DataFrame:
         """
         Summarize the gathered file information by file type.
+
+        Args:
+            unit (str): The unit to convert sizes to.
 
         Returns:
             pd.DataFrame: Summary DataFrame containing file extensions, counts, and total volumes.
@@ -87,15 +87,15 @@ class DirectoryMapper:
             Count=('Extension', 'count'),
             Volume=('Size', 'sum'),
             Max_Size=('Size', 'max'),
+            Min_Size=('Size', 'min'),
             Mean_Size=('Size', 'mean'),
             Median_Size=('Size', 'median')
         ).reset_index()
 
-        total_volume_bytes = summary['Volume'].sum()
-        best_unit, factor = self.get_best_unit(total_volume_bytes)
-        
+        factor = self.get_conversion_factor(unit)
         summary['Volume'] = summary['Volume'] / factor
         summary['Max_Size'] = summary['Max_Size'] / factor
+        summary['Min_Size'] = summary['Min_Size'] / factor
         summary['Mean_Size'] = summary['Mean_Size'] / factor
         summary['Median_Size'] = summary['Median_Size'] / factor
 
@@ -107,6 +107,7 @@ class DirectoryMapper:
             'Count': total_files,
             'Volume': total_volume,
             'Max_Size': summary['Max_Size'].max(),
+            'Min_Size': summary['Min_Size'].min(),
             'Mean_Size': summary['Mean_Size'].mean(),
             'Median_Size': summary['Median_Size'].median()
         }])
@@ -114,23 +115,27 @@ class DirectoryMapper:
         summary = pd.concat([summary, total_row], ignore_index=True)
         
         summary.rename(columns={
-            'Volume': f'Volume [{best_unit}]',
-            'Max_Size': f'Max_Size [{best_unit}]',
-            'Mean_Size': f'Mean_Size [{best_unit}]',
-            'Median_Size': f'Median_Size [{best_unit}]'
+            'Volume': f'Volume [{unit}]',
+            'Max_Size': f'Max_Size [{unit}]',
+            'Min_Size': f'Min_Size [{unit}]',
+            'Mean_Size': f'Mean_Size [{unit}]',
+            'Median_Size': f'Median_Size [{unit}]'
         }, inplace=True)
         
         return summary
 
-    def get_summary(self) -> pd.DataFrame:
+    def get_summary(self, unit: str) -> pd.DataFrame:
         """
         Get the summary of the directory's file information.
+
+        Args:
+            unit (str): The unit to convert sizes to.
 
         Returns:
             pd.DataFrame: Summary DataFrame containing file extensions, counts, and total volumes.
         """
         self.map_directory()
-        return self.summarize_file_info()
+        return self.summarize_file_info(unit)
 
 def save_summary(df: pd.DataFrame, output_file: str) -> None:
     """
@@ -149,18 +154,30 @@ def save_summary(df: pd.DataFrame, output_file: str) -> None:
     else:
         raise ValueError("Unsupported file format. Please use .csv, .parquet, or .xlsx.")
 
+def print_markdown_table(df: pd.DataFrame) -> None:
+    """
+    Print the DataFrame as a markdown table.
+    
+    Args:
+        df (pd.DataFrame): DataFrame to print.
+    """
+    print(df.to_markdown(index=False))
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Map and summarize file information in a directory.")
     parser.add_argument('directory', type=str, help="Path to the directory to be analyzed.")
     parser.add_argument('-o', '--output', type=str, help="Path to the output file (.csv, .parquet, or .xlsx).")
+    parser.add_argument('-u', '--unit', type=str, default='GiB', choices=['KiB', 'MiB', 'GiB', 'TiB'], help="Unit for size columns (default: GiB).")
+    parser.add_argument('-s', '--sort_by', type=str, default='Volume [GiB]', help="Column to sort the output by (default: Volume).")
     
     args = parser.parse_args()
     
     directory_mapper = DirectoryMapper(args.directory)
-    summary_df = directory_mapper.get_summary().round(3)
+    summary_df = directory_mapper.get_summary(args.unit).round(3)
+    summary_df = summary_df.sort_values(by=args.sort_by, ascending=False)
     
     if args.output:
         save_summary(summary_df, args.output)
         print(f"Summary saved to {args.output}")
     else:
-        print(summary_df.to_markdown())
+        print_markdown_table(summary_df)
