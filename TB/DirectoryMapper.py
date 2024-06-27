@@ -163,4 +163,4 @@ if __name__ == "__main__":
         save_summary(summary_df, args.output)
         print(f"Summary saved to {args.output}")
     else:
-        print(summary_df)
+        print(summary_df.to_markdown())
