@@ -54,30 +54,33 @@ class DirectoryMapper:
         return ''
 
     @staticmethod
-    def get_conversion_factor(unit: str) -> int:
+    def get_conversion_factor(size_in_bytes: float) -> tuple:
         """
-        Get the conversion factor for the specified unit.
+        Determine the best unit for displaying sizes and return the conversion factor.
         
         Args:
-            unit (str): The unit to convert to.
+            size_in_bytes (float): Size in bytes.
         
         Returns:
-            int: The conversion factor.
+            tuple: Unit name and conversion factor.
         """
-        unit_factors = {
-            'KiB': 1024,
-            'MiB': 1024 ** 2,
-            'GiB': 1024 ** 3,
-            'TiB': 1024 ** 4
-        }
-        return unit_factors.get(unit, 1024 ** 3)  # Default to GiB if unit is not recognized
+        if size_in_bytes < 1024:
+            return 'B', 1
+        elif size_in_bytes < 1024 ** 2:
+            return 'KiB', 1024
+        elif size_in_bytes < 1024 ** 3:
+            return 'MiB', 1024 ** 2
+        elif size_in_bytes < 1024 ** 4:
+            return 'GiB', 1024 ** 3
+        else:
+            return 'TiB', 1024 ** 4
 
-    def summarize_file_info(self, unit: str) -> pd.DataFrame:
+    def summarize_file_info(self, unit: str = None) -> pd.DataFrame:
         """
         Summarize the gathered file information by file type.
 
         Args:
-            unit (str): The unit to convert sizes to.
+            unit (str, optional): The unit to convert sizes to. If None, the best unit is determined dynamically.
 
         Returns:
             pd.DataFrame: Summary DataFrame containing file extensions, counts, and total volumes.
@@ -92,7 +95,18 @@ class DirectoryMapper:
             Median_Size=('Size', 'median')
         ).reset_index()
 
-        factor = self.get_conversion_factor(unit)
+        if unit is None:
+            total_volume_bytes = summary['Volume'].sum()
+            unit, factor = self.get_conversion_factor(total_volume_bytes)
+        else:
+            factor = self.get_conversion_factor(1024 ** 4)[1] if unit == 'TiB' else (
+                self.get_conversion_factor(1024 ** 3)[1] if unit == 'GiB' else (
+                    self.get_conversion_factor(1024 ** 2)[1] if unit == 'MiB' else (
+                        self.get_conversion_factor(1024)[1] if unit == 'KiB' else 1
+                    )
+                )
+            )
+
         summary['Volume'] = summary['Volume'] / factor
         summary['Max_Size'] = summary['Max_Size'] / factor
         summary['Min_Size'] = summary['Min_Size'] / factor
@@ -124,12 +138,12 @@ class DirectoryMapper:
         
         return summary
 
-    def get_summary(self, unit: str) -> pd.DataFrame:
+    def get_summary(self, unit: str = None) -> pd.DataFrame:
         """
         Get the summary of the directory's file information.
 
         Args:
-            unit (str): The unit to convert sizes to.
+            unit (str, optional): The unit to convert sizes to. If None, the best unit is determined dynamically.
 
         Returns:
             pd.DataFrame: Summary DataFrame containing file extensions, counts, and total volumes.
@@ -167,7 +181,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Map and summarize file information in a directory.")
     parser.add_argument('directory', type=str, help="Path to the directory to be analyzed.")
     parser.add_argument('-o', '--output', type=str, help="Path to the output file (.csv, .parquet, or .xlsx).")
-    parser.add_argument('-u', '--unit', type=str, default='GiB', choices=['KiB', 'MiB', 'GiB', 'TiB'], help="Unit for size columns (default: GiB).")
+    parser.add_argument('-u', '--unit', type=str, choices=['KiB', 'MiB', 'GiB', 'TiB'], help="Unit for size columns (default: determined dynamically).")
     parser.add_argument('-s', '--sort_by', type=str, default='Volume [GiB]', help="Column to sort the output by (default: Volume).")
     
     args = parser.parse_args()
