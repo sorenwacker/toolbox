@@ -200,6 +200,11 @@ if __name__ == "__main__":
     else:
         logger.warning(f"Sort by column '{sort_by_column}' not found in the DataFrame. Skipping sorting.")
 
+    # Ensure the 'Total' row is at the end
+    total_row = summary_df[summary_df['Extension'] == 'Total']
+    summary_df = summary_df[summary_df['Extension'] != 'Total']
+    summary_df = pd.concat([summary_df, total_row], ignore_index=True)
+    
     if args.output:
         save_summary(summary_df, args.output)
         print(f"Summary saved to {args.output}")
