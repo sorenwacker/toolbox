@@ -115,12 +115,15 @@ def save_summary(df: pd.DataFrame, output_file: str) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Map and summarize file information in a directory.")
     parser.add_argument('directory', type=str, help="Path to the directory to be analyzed.")
-    parser.add_argument('output_file', type=str, help="Path to the output file (.csv, .parquet, or .xlsx).")
+    parser.add_argument('-o', '--output', type=str, help="Path to the output file (.csv, .parquet, or .xlsx).")
     
     args = parser.parse_args()
     
     directory_mapper = DirectoryMapper(args.directory)
     summary_df = directory_mapper.get_summary().round(3)
     
-    save_summary(summary_df, args.output_file)
-    print(f"Summary saved to {args.output_file}")
+    if args.output:
+        save_summary(summary_df, args.output)
+        print(f"Summary saved to {args.output}")
+    else:
+        print(summary_df)
