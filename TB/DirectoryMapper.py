@@ -136,7 +136,7 @@ class DirectoryMapper:
             'Median_Size': f'Median_Size [{unit}]'
         }, inplace=True)
         
-        return summary
+        return summary, unit
 
     def get_summary(self, unit: str = None) -> pd.DataFrame:
         """
@@ -182,13 +182,15 @@ if __name__ == "__main__":
     parser.add_argument('directory', type=str, help="Path to the directory to be analyzed.")
     parser.add_argument('-o', '--output', type=str, help="Path to the output file (.csv, .parquet, or .xlsx).")
     parser.add_argument('-u', '--unit', type=str, choices=['KiB', 'MiB', 'GiB', 'TiB'], help="Unit for size columns (default: determined dynamically).")
-    parser.add_argument('-s', '--sort_by', type=str, default='Volume [GiB]', help="Column to sort the output by (default: Volume).")
+    parser.add_argument('-s', '--sort_by', type=str, default='Volume', help="Column to sort the output by (default: Volume).")
     
     args = parser.parse_args()
     
     directory_mapper = DirectoryMapper(args.directory)
-    summary_df = directory_mapper.get_summary(args.unit).round(3)
-    summary_df = summary_df.sort_values(by=args.sort_by, ascending=False)
+    summary_df, unit = directory_mapper.get_summary(args.unit)
+    summary_df = summary_df.round(3)
+    sort_by_column = f"{args.sort_by} [{unit}]"
+    summary_df = summary_df.sort_values(by=sort_by_column, ascending=False)
     
     if args.output:
         save_summary(summary_df, args.output)
