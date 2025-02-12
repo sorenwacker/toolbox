@@ -15,11 +15,30 @@ cyto.load_extra_layouts()
 class DirectoryGraphVisualizer:
     """Interactive visualization of directory structures using Dash and Cytoscape."""
     
-    LAYOUTS = ['breadthfirst', 'circle', 'cola', 'concentric', 'cose', 'cose-bilkent', 
-               'dagre', 'euler', 'grid', 'klay', 'preset', 'random', 'spread']
+    LAYOUTS = ['breadthfirst', 'cola', 'cose', 'cose-bilkent', 
+               'dagre', 'euler', 'klay']
     
-    DIRECTORY_COLORS = ['#4CAF50', '#FFA500', '#2196F3', '#9C27B0', '#F44336', '#00BCD4', '#8BC34A']
-
+    DIRECTORY_COLORS = [
+        '#F44336',  # Red
+        '#FFA500',  # Orange
+        '#2196F3',  # Blue
+        '#9C27B0',  # Purple
+        '#00BCD4',  # Cyan
+        '#8BC34A',  # Light Green
+        '#FF5722',  # Deep Orange
+        '#3F51B5',  # Indigo
+        '#E91E63',  # Pink
+        '#009688',  # Teal
+        '#CDDC39',  # Lime
+        '#795548',  # Brown
+        '#607D8B',  # Blue Grey
+        '#FFEB3B',  # Yellow
+        '#9E9E9E',  # Grey
+        '#FF4081',  # Pink Accent
+        '#00E676',  # Green Accent
+        '#651FFF',  # Deep Purple Accent
+    ]
+    
     def __init__(self, root_directory: str | Path, 
                  port: int = 8050, 
                  ignore_patterns: List[str] = None,
@@ -49,7 +68,6 @@ class DirectoryGraphVisualizer:
         root_id = str(self.root_directory).replace('\\', '/')
 
         def walk(path: Path, depth: int = 0) -> None:
-            print(path)
             if self._should_ignore(path):
                 return
 
@@ -112,7 +130,7 @@ class DirectoryGraphVisualizer:
             {
                 'selector': 'node[is_root]',
                 'style': {
-                    'border-width': '1px',
+                    'border-width': '2px',
                     'border-color': '#000000'
                 }
             },
@@ -141,17 +159,63 @@ class DirectoryGraphVisualizer:
         layout_options = [{'label': layout, 'value': layout} for layout in self.LAYOUTS]
         
         self.app.layout = html.Div([
-            html.H1(self.root_directory.name),  # Heading displays the directory name
+            html.H1(self.root_directory.name),
             html.Div([
-                dcc.Dropdown(id='layout-dropdown', options=layout_options, value='klay', 
-                            style={'width': '300px', 'marginBottom': '10px'}),
-                dcc.Slider(id='edge-width-slider', min=1, max=10, step=0.1, value=1,
+                html.Div([
+                    html.Label('Layout Type'),
+                    dcc.Dropdown(
+                        id='layout-dropdown',
+                        options=layout_options,
+                        value='cola',
+                        style={'width': '300px', 'marginBottom': '20px'}
+                    ),
+                ], style={'marginBottom': '20px'}),
+                
+                html.Div([
+                    html.Label('Edge Width'),
+                    dcc.Slider(
+                        id='edge-width-slider',
+                        min=1,
+                        max=10,
+                        step=0.1,
+                        value=1,
                         marks={i: str(i) for i in range(1, 11)},
-                        tooltip={"placement": "bottom", "always_visible": True}),
-                html.Button("Remove Labels", id="toggle-labels-button", n_clicks=0),
+                        tooltip={"placement": "bottom", "always_visible": True}
+                    ),
+                ], style={'marginBottom': '20px'}),
+                
+                html.Div([
+                    html.Label('Edge Length'),
+                    dcc.Slider(
+                        id='edge-length-slider',
+                        min=50,
+                        max=300,
+                        step=10,
+                        value=100,
+                        marks={i: str(i) for i in range(50, 301, 50)},
+                        tooltip={"placement": "bottom", "always_visible": True}
+                    ),
+                ], style={'marginBottom': '20px'}),
+                
+                html.Div([
+                    html.Label('Node Spacing'),
+                    dcc.Slider(
+                        id='node-spacing-slider',
+                        min=10,
+                        max=100,
+                        step=10,
+                        value=25,
+                        marks={i: str(i) for i in range(10, 101, 20)},
+                        tooltip={"placement": "bottom", "always_visible": True}
+                    ),
+                ], style={'marginBottom': '20px'}),
+                
+                html.Button("Toggle Labels", id="toggle-labels-button", n_clicks=0, 
+                          style={'marginRight': '10px'}),
                 html.Button("Export to HTML", id="export-button"),
                 html.Div(id='export-message')
             ], style={'margin': '20px'}),
+            
             cyto.Cytoscape(
                 id='directory-graph',
                 layout={'name': 'cola'},
@@ -160,7 +224,6 @@ class DirectoryGraphVisualizer:
                 stylesheet=self._get_stylesheet()
             )
         ])
-
 
     def _setup_callbacks(self) -> None:
         @self.app.callback(
@@ -172,23 +235,58 @@ class DirectoryGraphVisualizer:
 
         @self.app.callback(
             Output('directory-graph', 'layout'),
-            Input('layout-dropdown', 'value')
+            [Input('layout-dropdown', 'value'),
+             Input('edge-length-slider', 'value'),
+             Input('node-spacing-slider', 'value')]
         )
-        def update_layout(layout_name):
-            return {'name': layout_name, 'roots': f'[id = "{str(self.root_directory).replace("\\", "/")}"]'} \
-                if layout_name == 'breadthfirst' else {'name': layout_name}
+        def update_layout(layout_name, edge_length, node_spacing):
+            if layout_name not in self.LAYOUTS:
+                layout_name = 'cola'  # Default to cola if invalid layout
+                
+            layout_config = {'name': layout_name}
+            
+            # Add spacing parameters only for supported layouts
+            if layout_name == 'cola':
+                layout_config.update({
+                    'animate': True,
+                    'edgeLength': edge_length,
+                    'nodeSpacing': node_spacing,
+                    'padding': 30
+                })
+            elif layout_name == 'breadthfirst':
+                layout_config.update({
+                    'roots': f'[id = "{str(self.root_directory).replace("\\", "/")}"]',
+                    'spacingFactor': node_spacing / 30,
+                    'padding': 30
+                })
+            elif layout_name in ['cose', 'cose-bilkent']:
+                layout_config.update({
+                    'nodeRepulsion': node_spacing * 100,
+                    'idealEdgeLength': edge_length,
+                    'padding': 30
+                })
+            elif layout_name == 'klay':
+                layout_config = {
+                    'name': 'klay',
+                    'fit': True,
+                    'padding': 20,
+                    'spacingFactor': node_spacing / 10,
+                    'edgeLengthCoefficient': edge_length / 10
+                }
+            
+            return layout_config
 
         @self.app.callback(
             Output('directory-graph', 'stylesheet'),
-            Input('edge-width-slider', 'value'),
-            Input('toggle-labels-button', 'n_clicks')
+            [Input('edge-width-slider', 'value'),
+             Input('toggle-labels-button', 'n_clicks')]
         )
         def update_stylesheet(edge_width, n_clicks):
             stylesheet = self._get_stylesheet(edge_width)
-            if n_clicks % 2 == 1:  # Toggle label visibility on odd clicks
+            if n_clicks % 2 == 1:
                 for style in stylesheet:
                     if style['selector'] == 'node':
-                        style['style']['content'] = ''  # Hide labels
+                        style['style']['content'] = ''
             return stylesheet
 
         @self.app.callback(
@@ -205,7 +303,6 @@ class DirectoryGraphVisualizer:
                 except Exception as e:
                     return f"Export failed: {e}"
             return ""
-
 
     def _save_as_html(self, elements: List[Dict[str, Any]], filename: str = 'directory_visualization.html') -> None:
         html_template = """
