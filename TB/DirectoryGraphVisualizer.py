@@ -18,6 +18,8 @@ class DirectoryGraphVisualizer:
     LAYOUTS = ['breadthfirst', 'cola', 'cose', 'cose-bilkent', 
                'dagre', 'euler', 'klay']
     
+    LAYOUTS.sort()
+    
     DIRECTORY_COLORS = [
         '#F44336',  # Red
         '#FFA500',  # Orange
@@ -156,7 +158,7 @@ class DirectoryGraphVisualizer:
         ]
 
     def _setup_layout(self) -> None:
-        layout_options = [{'label': layout, 'value': layout} for layout in self.LAYOUTS]
+        layout_options = [{'label': layout.capitalize(), 'value': layout} for layout in self.LAYOUTS]
         
         self.app.layout = html.Div([
             html.H1(self.root_directory.name),
@@ -166,7 +168,7 @@ class DirectoryGraphVisualizer:
                     dcc.Dropdown(
                         id='layout-dropdown',
                         options=layout_options,
-                        value='cola',
+                        value='klay',
                         style={'width': '300px', 'marginBottom': '20px'}
                     ),
                 ], style={'marginBottom': '20px'}),
@@ -197,9 +199,34 @@ class DirectoryGraphVisualizer:
                     ),
                 ], style={'marginBottom': '20px'}),
                 
-                html.Button("Toggle Labels", id="toggle-labels-button", n_clicks=0, 
-                          style={'marginRight': '10px'}),
-                html.Button("Export to HTML", id="export-button"),
+                html.Button(
+                    "Toggle Labels", 
+                    id="toggle-labels-button", 
+                    n_clicks=0,
+                    style={
+                        'marginRight': '10px',
+                        'backgroundColor': '#2196F3',
+                        'color': 'white',
+                        'border': 'none',
+                        'padding': '10px 20px',
+                        'borderRadius': '5px',
+                        'cursor': 'pointer'
+                    }
+                ),
+                
+                html.Button(
+                    "Export to HTML", 
+                    id="export-button",
+                    style={
+                        'backgroundColor': '#4CAF50',
+                        'color': 'white',
+                        'border': 'none',
+                        'padding': '10px 20px',
+                        'borderRadius': '5px',
+                        'cursor': 'pointer'
+                    }
+                ),
+                
                 html.Div(id='export-message')
             ], style={'margin': '20px'}),
             
@@ -285,7 +312,7 @@ class DirectoryGraphVisualizer:
         )
         def update_stylesheet(edge_width, n_clicks):
             stylesheet = self._get_stylesheet(edge_width)
-            if n_clicks % 2 == 1:
+            if n_clicks % 2 == 0:
                 for style in stylesheet:
                     if style['selector'] == 'node':
                         style['style']['content'] = ''
