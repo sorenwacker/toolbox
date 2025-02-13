@@ -259,7 +259,23 @@ class DirectoryGraphVisualizer:
                     'spacingFactor': node_spacing/5 + 1 ,
                     'edgeLengthCoefficient': node_spacing/5 + 1
                 }
-            
+            elif layout_name == 'euler':
+                layout_config.update({
+                    'springLength': node_spacing*25 + 10,  # Base spring length
+                    #'springCoeff': 100,   # Spring coefficient
+                    #'mass': 1, 
+                    #'gravity': 0, 
+                    'padding': 30
+                })
+            elif layout_name == 'dagre':
+                layout_config.update({
+                    'rankSep': node_spacing*10 + 30,      # Vertical spacing between ranks
+                    'nodeSep': node_spacing*20 + 50,      # Horizontal spacing between nodes
+                    'edgeSep': node_spacing*5 + 10,      # Minimum spacing between edges
+                    'padding': 30,
+                    'ranker': 'tight-tree'                # Use tight-tree ranking for better hierarchical layout
+                })
+                    
             return layout_config
 
         @self.app.callback(
