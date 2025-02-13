@@ -178,21 +178,8 @@ class DirectoryGraphVisualizer:
                         min=1,
                         max=10,
                         step=0.1,
-                        value=1,
+                        value=5,
                         marks={i: str(i) for i in range(1, 11)},
-                        tooltip={"placement": "bottom", "always_visible": True}
-                    ),
-                ], style={'marginBottom': '20px'}),
-                
-                html.Div([
-                    html.Label('Edge Length'),
-                    dcc.Slider(
-                        id='edge-length-slider',
-                        min=50,
-                        max=300,
-                        step=10,
-                        value=100,
-                        marks={i: str(i) for i in range(50, 301, 50)},
                         tooltip={"placement": "bottom", "always_visible": True}
                     ),
                 ], style={'marginBottom': '20px'}),
@@ -201,11 +188,11 @@ class DirectoryGraphVisualizer:
                     html.Label('Node Spacing'),
                     dcc.Slider(
                         id='node-spacing-slider',
-                        min=10,
-                        max=100,
-                        step=10,
-                        value=25,
-                        marks={i: str(i) for i in range(10, 101, 20)},
+                        min=0,
+                        max=10,
+                        step=1,
+                        value=1,
+                        marks={i: str(i) for i in range(0, 11)},
                         tooltip={"placement": "bottom", "always_visible": True}
                     ),
                 ], style={'marginBottom': '20px'}),
@@ -236,10 +223,9 @@ class DirectoryGraphVisualizer:
         @self.app.callback(
             Output('directory-graph', 'layout'),
             [Input('layout-dropdown', 'value'),
-             Input('edge-length-slider', 'value'),
              Input('node-spacing-slider', 'value')]
         )
-        def update_layout(layout_name, edge_length, node_spacing):
+        def update_layout(layout_name, node_spacing):
             if layout_name not in self.LAYOUTS:
                 layout_name = 'cola'  # Default to cola if invalid layout
                 
@@ -249,29 +235,29 @@ class DirectoryGraphVisualizer:
             if layout_name == 'cola':
                 layout_config.update({
                     'animate': True,
-                    'edgeLength': edge_length,
-                    'nodeSpacing': node_spacing,
+                    'edgeLength': node_spacing*10+40,
+                    'nodeSpacing': node_spacing*5,
                     'padding': 30
                 })
             elif layout_name == 'breadthfirst':
                 layout_config.update({
                     'roots': f'[id = "{str(self.root_directory).replace("\\", "/")}"]',
-                    'spacingFactor': node_spacing / 30,
+                    'spacingFactor': node_spacing/8 + 0.5,
                     'padding': 30
                 })
             elif layout_name in ['cose', 'cose-bilkent']:
                 layout_config.update({
-                    'nodeRepulsion': node_spacing * 100,
-                    'idealEdgeLength': edge_length,
+                    'nodeRepulsion': 1000,
+                    'idealEdgeLength': node_spacing*20,
                     'padding': 30
                 })
             elif layout_name == 'klay':
                 layout_config = {
                     'name': 'klay',
                     'fit': True,
-                    'padding': 20,
-                    'spacingFactor': node_spacing / 10,
-                    'edgeLengthCoefficient': edge_length / 10
+                    'padding': 30,
+                    'spacingFactor': node_spacing/5 + 1 ,
+                    'edgeLengthCoefficient': node_spacing/5 + 1
                 }
             
             return layout_config
