@@ -168,7 +168,7 @@ class DirectoryGraphVisualizer:
                     dcc.Dropdown(
                         id='layout-dropdown',
                         options=layout_options,
-                        value='klay',
+                        value='dagre',
                         style={'width': '300px', 'marginBottom': '20px'}
                     ),
                 ], style={'marginBottom': '20px'}),
@@ -296,8 +296,8 @@ class DirectoryGraphVisualizer:
                 })
             elif layout_name == 'dagre':
                 layout_config.update({
-                    'rankSep': node_spacing*10 + 30,      # Vertical spacing between ranks
-                    'nodeSep': node_spacing*20 + 50,      # Horizontal spacing between nodes
+                    'rankSep': node_spacing*10 + 10,      # Vertical spacing between ranks
+                    'nodeSep': node_spacing*20 + 10,      # Horizontal spacing between nodes
                     'edgeSep': node_spacing*5 + 10,      # Minimum spacing between edges
                     'padding': 30,
                     'ranker': 'tight-tree'                # Use tight-tree ranking for better hierarchical layout
